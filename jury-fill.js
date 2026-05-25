@@ -6,6 +6,12 @@
  * payload is produced by the Google Doc add-on (Code.gs / showCopyDialog).
  */
 (async () => {
+  // Defined early so all helper functions (hoisted or not) can use it.
+  const MONTHS = {
+    january:0, february:1, march:2, april:3, may:4, june:5,
+    july:6, august:7, september:8, october:9, november:10, december:11
+  };
+
   let data;
   try {
     data = JSON.parse(await navigator.clipboard.readText());
@@ -186,11 +192,6 @@
 
 
   // ---------- Date / time -------------------------------------------------
-
-  const MONTHS = {
-    january:0, february:1, march:2, april:3, may:4, june:5,
-    july:6, august:7, september:8, october:9, november:10, december:11
-  };
 
   function combineDateTime(dateStr, timeStr) {
     // Accepts "30 May 2026" (the doc's normalized format) plus a few fallbacks.
