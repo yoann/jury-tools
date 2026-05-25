@@ -86,7 +86,8 @@
       ['proceduralMatters_en', 'decision_procedures_text',         'Procedural matters'],
       ['factsFound_en',        'decision_facts_found_text',        'Facts found'],
       ['conclusion_en',        'decision_rules_conclusions_text',  'Conclusions'],
-      ['decision_en',          'decision_decision_text',           'Decision']
+      ['decision_en',          'decision_decision_text',           'Decision'],
+      ['shortDecision_en',     'decision_short_decision_text',     'Decision abstract']
     ];
     for (const [src, dst, label] of trixMap) {
       if (data[src] === undefined) continue;
