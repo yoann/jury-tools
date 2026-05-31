@@ -1,9 +1,10 @@
 /**
  * jury-fill.js — bookmarklet payload for the "Fill jury decision" tool.
  *
- * Detects whether the current page is sailti or RRS (racingrulesofsailing.org)
- * and fills the matching fields with content from the clipboard. The clipboard
- * payload is produced by the Google Doc add-on (Code.gs / showCopyDialog).
+ * Detects whether the current page is sailti, RRS (racingrulesofsailing.org),
+ * or m2s (manage2sail) and fills the matching fields with content from the
+ * clipboard. The clipboard payload is produced by the Google Doc add-on
+ * (Code.gs / showCopyDialog).
  */
 (async () => {
   // Defined early so all helper functions (hoisted or not) can use them.
