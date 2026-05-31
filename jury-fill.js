@@ -6,10 +6,14 @@
  * payload is produced by the Google Doc add-on (Code.gs / showCopyDialog).
  */
 (async () => {
-  // Defined early so all helper functions (hoisted or not) can use it.
+  // Defined early so all helper functions (hoisted or not) can use them.
   const MONTHS = {
     january:0, february:1, march:2, april:3, may:4, june:5,
     july:6, august:7, september:8, october:9, november:10, december:11
+  };
+  const MONTH_NUM = {
+    january:1, february:2, march:3, april:4, may:5, june:6,
+    july:7, august:8, september:9, october:10, november:11, december:12
   };
 
   let data;
@@ -380,6 +384,8 @@
       if (result.chairSet)         filled.push('Chairman (' + result.chairName + ')');
       else if (members.length)     failed.push('Chairman (no match for "' + members[0] + '")');
       if (result.panelAdded > 0)   filled.push('Panel Members (' + result.panelAdded + ' added)');
+      if (result.signedBySet)      filled.push('Signed By (' + result.chairName + ')');
+      if (result.scribeSet)        filled.push('Scribe (' + result.scribeName + ')');
       if (result.unmatched.length) filled.push('Other Panel Members (' + result.unmatched.length + ' unmatched)');
     }
 
@@ -474,41 +480,48 @@
 
   function assignM2SJuryMembers($, scope, names) {
     let chairSet = false, chairName = '';
+    let scribeSet = false, scribeName = '';
+    let signedBySet = false;
     let panelAdded = 0;
     const unmatched = [];
 
     if (!scope || !scope.lists || !scope.lists.CommitteeMembers) {
-      // No scope context — bail with everything unmatched.
       for (const n of names) unmatched.push(n);
-      return { chairSet, chairName, panelAdded, unmatched };
+      return { chairSet, chairName, scribeSet, scribeName, signedBySet,
+               panelAdded, unmatched };
     }
     const allMembers = scope.lists.CommitteeMembers;
 
-    // First name = Chairman. Find the member object by FullName and assign it
-    // directly to scope.item.Chairman (Angular tracks by Id).
-    if (names.length) {
-      const target = stripParens(names[0]).toLowerCase();
-      const chair = allMembers.find(m =>
-        stripParens(m.FullName || '').toLowerCase() === target);
-      if (chair) {
-        ngApply(scope, () => { scope.item.Chairman = chair; });
+    // Doc convention for the jury-members list:
+    //   names[0]             = chair
+    //   names[last] (>1)     = scribe
+    //   names[0..last-1]     = panel members (chair + middle members)
+    const chairIdx  = names.length > 0 ? 0 : -1;
+    const scribeIdx = names.length > 1 ? names.length - 1 : -1;
+
+    // --- Chairman ---
+    let chairMember = null;
+    if (chairIdx >= 0) {
+      chairMember = findMemberByName(allMembers, names[chairIdx]);
+      if (chairMember) {
+        ngApply(scope, () => { scope.item.Chairman = chairMember; });
         chairSet = true;
-        chairName = names[0];
+        chairName = names[chairIdx];
       } else {
-        unmatched.push(names[0]);
+        unmatched.push(names[chairIdx]);
       }
     }
 
-    // Panel members: for each remaining name, set _selectedPanelMember and
-    // invoke addCommittee() — that's the same path the Chosen widget uses.
-    for (let i = 1; i < names.length; i++) {
-      const target = stripParens(names[i]).toLowerCase();
-      const member = allMembers.find(m =>
-        stripParens(m.FullName || '').toLowerCase() === target);
-      if (!member) { unmatched.push(names[i]); continue; }
-      // Skip if it's the chair we just assigned.
-      if (scope.item.Chairman && scope.item.Chairman.Id === member.Id) continue;
-
+    // --- Panel Members (chair + middle members, but not the scribe) ---
+    // The chair is added first so the panel list reads chair, m2, m3, …
+    const panelEndExclusive = scribeIdx >= 0 ? scribeIdx : names.length;
+    for (let i = 0; i < panelEndExclusive; i++) {
+      const member = findMemberByName(allMembers, names[i]);
+      if (!member) {
+        // Skip the chair from the unmatched list — already pushed above.
+        if (i !== chairIdx) unmatched.push(names[i]);
+        continue;
+      }
       ngApply(scope, () => {
         scope.item._selectedPanelMember = member;
         if (typeof scope.addCommittee === 'function') scope.addCommittee();
@@ -516,22 +529,52 @@
       panelAdded++;
     }
 
-    // Other Panel Members: capture anything unmatched.
+    // --- Signed By = the chair, drawn from item.PanelMembers ---
+    // PanelMembers is populated by addCommittee() above, so we assign by Id.
+    if (chairMember && scope.item.PanelMembers && scope.item.PanelMembers.length) {
+      const signer = scope.item.PanelMembers.find(m => m.Id === chairMember.Id);
+      if (signer) {
+        ngApply(scope, () => { scope.item.SignedBy = signer; });
+        signedBySet = true;
+      }
+    }
+
+    // --- Scribe (last name, drawn from lists.CommitteeMembers) ---
+    if (scribeIdx >= 0) {
+      const scribeMember = findMemberByName(allMembers, names[scribeIdx]);
+      if (scribeMember) {
+        ngApply(scope, () => { scope.item.Scribe = scribeMember; });
+        scribeSet = true;
+        scribeName = names[scribeIdx];
+      } else {
+        unmatched.push(names[scribeIdx]);
+      }
+    }
+
+    // --- Other Panel Members: capture anything unmatched ---
     if (unmatched.length) {
       const otherEl = document.querySelector('input[name="other_members"]');
       if (otherEl) setAngularInput($, otherEl, unmatched.join(', '));
     }
 
-    return { chairSet, chairName, panelAdded, unmatched };
+    return { chairSet, chairName, scribeSet, scribeName, signedBySet,
+             panelAdded, unmatched };
+  }
+
+  /**
+   * Finds a committee member object by their FullName, stripping parenthetical
+   * country/role suffixes from both sides so matches tolerate "Yoann Peronneau"
+   * vs "Yoann Peronneau (FRA)" etc.
+   */
+  function findMemberByName(members, name) {
+    if (!name) return null;
+    const target = stripParens(name).toLowerCase();
+    return members.find(m =>
+      stripParens(m.FullName || '').toLowerCase() === target) || null;
   }
 
 
   // ---------- m2s date helpers ------------------------------------------
-
-  const MONTH_NUM = {
-    january:1, february:2, march:3, april:4, may:5, june:6,
-    july:7, august:8, september:9, october:10, november:11, december:12
-  };
 
   /**
    * Converts the doc's "30 May 2026" date string into m2s's "DD/MM/YYYY"
