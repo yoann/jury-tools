@@ -512,14 +512,13 @@
       }
     }
 
-    // --- Panel Members (chair + middle members, but not the scribe) ---
-    // The chair is added first so the panel list reads chair, m2, m3, …
-    const panelEndExclusive = scribeIdx >= 0 ? scribeIdx : names.length;
-    for (let i = 0; i < panelEndExclusive; i++) {
+    // --- Panel Members (everyone: chair first, middle members, scribe last) ---
+    // The chair is added first so the panel list reads chair, m2, m3, …, scribe
+    for (let i = 0; i < names.length; i++) {
       const member = findMemberByName(allMembers, names[i]);
       if (!member) {
-        // Skip the chair from the unmatched list — already pushed above.
-        if (i !== chairIdx) unmatched.push(names[i]);
+        // Skip duplicates — chair/scribe failures are pushed in their own blocks.
+        if (i !== chairIdx && i !== scribeIdx) unmatched.push(names[i]);
         continue;
       }
       ngApply(scope, () => {
