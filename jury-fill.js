@@ -22,13 +22,15 @@
   }
 
   try {
-    if (document.getElementById('decision_procedures_text')) {
+    if (document.querySelector('[ng-model="item.ProceduralMatters"]')) {
+      await fillM2S(data);
+    } else if (document.getElementById('decision_procedures_text')) {
       await fillRRS(data);
     } else if (document.getElementById('proceduralMatters_en')) {
       fillSailti(data);
     } else {
       alert('This page does not look like a jury decision form ' +
-            '(sailti or RRS). Open the form first, then click the bookmark.');
+            '(sailti, RRS, or m2s). Open the form first, then click the bookmark.');
     }
   } catch (e) {
     alert('Error filling the form: ' + e.message);
@@ -301,5 +303,247 @@
   }
 
   function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+
+
+  // =========================================================================
+  // manage2sail (m2s) — AngularJS app with Summernote editors and Chosen
+  // selects. Form controls use name="" and ng-model="" rather than id="".
+  // =========================================================================
+
+  async function fillM2S(data) {
+    // 1) Switch to the Hearing tab.
+    const hearingLink = document.querySelector('a[href="#hearing"][sg-tab]');
+    if (hearingLink) {
+      hearingLink.click();
+      await sleep(200);
+    }
+
+    if (!window.jQuery) {
+      alert('Cannot fill: jQuery not found on this page.');
+      return;
+    }
+    const $ = window.jQuery;
+    const scope = getRootDetailScope();
+
+    const filled = [];
+    const failed = [];
+
+    // 2) Summernote-backed long fields. Set via the summernote('code', ...)
+    //    API which is the only reliable way to push content + sync ng-model.
+    const summernoteMap = [
+      ['proceduralMatters_en', 'item.ProceduralMatters', 'Procedural matters'],
+      ['factsFound_en',        'item.FactsFound',        'Facts found'],
+      ['conclusion_en',        'item.Conclusion',        'Conclusions'],
+      ['decision_en',          'item.Decision',          'Decision']
+    ];
+    for (const [src, ngModel, label] of summernoteMap) {
+      if (data[src] === undefined) continue;
+      const ok = setSummernoteContent($, scope, ngModel, plainTextToTrixHTML(data[src]));
+      (ok ? filled : failed).push(label);
+    }
+
+    // 3) Plain text inputs by name attribute.
+    if (data.rule_en !== undefined) {
+      // Note: m2s misspelled the field name as "tules_applicable" in their HTML.
+      const el = document.querySelector('input[name="tules_applicable"]');
+      if (el) { setAngularInput($, el, data.rule_en); filled.push('Rules'); }
+      else                                              failed.push('Rules');
+    }
+    if (data.shortDecision_en !== undefined) {
+      const el = document.querySelector('input[name="decision_short"]');
+      if (el) { setAngularInput($, el, data.shortDecision_en); filled.push('Decision (short)'); }
+      else                                                       failed.push('Decision (short)');
+    }
+
+    // 4) Date + time split into two DD/MM/YYYY + hh:mm inputs.
+    if (data.decisionDate) {
+      const parts = toDDMMYYYY(data.decisionDate);
+      const dateEl = document.querySelector('input[name="DecisionDate"]');
+      const timeEl = document.querySelector('input[name="decision_time"]');
+      if (dateEl && parts) {
+        setAngularInput($, dateEl, parts);
+        filled.push('Decision date');
+      } else {
+        failed.push('Decision date');
+      }
+      if (timeEl && data.decisionTime) {
+        setAngularInput($, timeEl, data.decisionTime);
+        filled.push('Decision time');
+      }
+    }
+
+    // 5) Jury members.
+    if (data.juryMembers) {
+      const members = data.juryMembers.split(',').map(s => s.trim()).filter(Boolean);
+      const result = assignM2SJuryMembers($, scope, members);
+      if (result.chairSet)         filled.push('Chairman (' + result.chairName + ')');
+      else if (members.length)     failed.push('Chairman (no match for "' + members[0] + '")');
+      if (result.panelAdded > 0)   filled.push('Panel Members (' + result.panelAdded + ' added)');
+      if (result.unmatched.length) filled.push('Other Panel Members (' + result.unmatched.length + ' unmatched)');
+    }
+
+    let msg = 'm2s form filled.\n\n';
+    if (filled.length) msg += '✓ ' + filled.join('\n✓ ');
+    if (failed.length) msg += (filled.length ? '\n\n' : '') + '⚠ ' + failed.join('\n⚠ ');
+    msg += '\n\nReview before saving. Hearing opening time, Witnesses, ' +
+           'validity checks, and other m2s-specific fields are not auto-filled.';
+    alert(msg);
+  }
+
+
+  // ---------- AngularJS helpers ----------------------------------------
+
+  /**
+   * Finds the scope of the case-detail form. The whole hearing UI is rendered
+   * inside a div.tabbed-detail with class "ng-scope". We grab that element's
+   * scope, which is the parent scope that exposes `item`, `lists`,
+   * `addCommittee()`, etc.
+   */
+  function getRootDetailScope() {
+    if (!window.angular) return null;
+    const el = document.querySelector('.tabbed-detail.ng-scope') ||
+               document.querySelector('[ng-model="item.ProceduralMatters"]');
+    if (!el) return null;
+    return window.angular.element(el).scope();
+  }
+
+  /**
+   * Safely applies fn inside an Angular digest, deferring if one is already
+   * running. AngularJS throws if you call $apply while a digest is in flight.
+   */
+  function ngApply(scope, fn) {
+    if (!scope) { fn(); return; }
+    const phase = scope.$root && scope.$root.$$phase;
+    if (phase === '$apply' || phase === '$digest') fn();
+    else scope.$apply(fn);
+  }
+
+  /**
+   * Sets an <input> bound by ng-model and notifies Angular. Uses jQuery's
+   * .val() + .trigger('input') so any sg-date / sg-time directive watchers
+   * also fire and parse the value.
+   */
+  function setAngularInput($, el, value) {
+    const $el = $(el);
+    $el.val(value);
+    $el.trigger('input');
+    $el.trigger('change');
+    const scope = window.angular ? window.angular.element(el).scope() : null;
+    if (scope) ngApply(scope, () => {});
+  }
+
+  /**
+   * Sets a Summernote editor's content via the official API and pushes the
+   * new value into the ng-model so the case can be saved. The container that
+   * carries the ng-model attribute is the Summernote-bound element.
+   */
+  function setSummernoteContent($, scope, ngModelExpr, html) {
+    const container = document.querySelector('[ng-model="' + ngModelExpr + '"]');
+    if (!container) return false;
+
+    try {
+      $(container).summernote('code', html);
+    } catch (e) {
+      // Fall back to writing the editable directly if summernote API throws.
+      const editor = container.nextElementSibling;
+      if (!editor || !editor.classList.contains('note-editor')) return false;
+      const editable = editor.querySelector('.note-editable');
+      if (!editable) return false;
+      editable.innerHTML = html;
+      $(editable).trigger('input').trigger('change');
+    }
+
+    // Push into the ng-model. Summernote's code() doesn't always notify Angular.
+    if (scope) {
+      ngApply(scope, () => {
+        const path = ngModelExpr.split('.');
+        let obj = scope;
+        for (let i = 0; i < path.length - 1; i++) {
+          if (obj[path[i]] === undefined) obj[path[i]] = {};
+          obj = obj[path[i]];
+        }
+        obj[path[path.length - 1]] = html;
+      });
+    }
+    return true;
+  }
+
+
+  // ---------- m2s jury members ------------------------------------------
+
+  function assignM2SJuryMembers($, scope, names) {
+    let chairSet = false, chairName = '';
+    let panelAdded = 0;
+    const unmatched = [];
+
+    if (!scope || !scope.lists || !scope.lists.CommitteeMembers) {
+      // No scope context — bail with everything unmatched.
+      for (const n of names) unmatched.push(n);
+      return { chairSet, chairName, panelAdded, unmatched };
+    }
+    const allMembers = scope.lists.CommitteeMembers;
+
+    // First name = Chairman. Find the member object by FullName and assign it
+    // directly to scope.item.Chairman (Angular tracks by Id).
+    if (names.length) {
+      const target = stripParens(names[0]).toLowerCase();
+      const chair = allMembers.find(m =>
+        stripParens(m.FullName || '').toLowerCase() === target);
+      if (chair) {
+        ngApply(scope, () => { scope.item.Chairman = chair; });
+        chairSet = true;
+        chairName = names[0];
+      } else {
+        unmatched.push(names[0]);
+      }
+    }
+
+    // Panel members: for each remaining name, set _selectedPanelMember and
+    // invoke addCommittee() — that's the same path the Chosen widget uses.
+    for (let i = 1; i < names.length; i++) {
+      const target = stripParens(names[i]).toLowerCase();
+      const member = allMembers.find(m =>
+        stripParens(m.FullName || '').toLowerCase() === target);
+      if (!member) { unmatched.push(names[i]); continue; }
+      // Skip if it's the chair we just assigned.
+      if (scope.item.Chairman && scope.item.Chairman.Id === member.Id) continue;
+
+      ngApply(scope, () => {
+        scope.item._selectedPanelMember = member;
+        if (typeof scope.addCommittee === 'function') scope.addCommittee();
+      });
+      panelAdded++;
+    }
+
+    // Other Panel Members: capture anything unmatched.
+    if (unmatched.length) {
+      const otherEl = document.querySelector('input[name="other_members"]');
+      if (otherEl) setAngularInput($, otherEl, unmatched.join(', '));
+    }
+
+    return { chairSet, chairName, panelAdded, unmatched };
+  }
+
+
+  // ---------- m2s date helpers ------------------------------------------
+
+  const MONTH_NUM = {
+    january:1, february:2, march:3, april:4, may:5, june:6,
+    july:7, august:8, september:9, october:10, november:11, december:12
+  };
+
+  /**
+   * Converts the doc's "30 May 2026" date string into m2s's "DD/MM/YYYY"
+   * format. Returns null if parsing fails.
+   */
+  function toDDMMYYYY(s) {
+    const m = (s || '').match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$/);
+    if (!m) return null;
+    const mo = MONTH_NUM[m[2].toLowerCase()];
+    if (!mo) return null;
+    const pad = n => (n < 10 ? '0' + n : '' + n);
+    return pad(+m[1]) + '/' + pad(mo) + '/' + m[3];
+  }
 
 })();
