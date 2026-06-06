@@ -1,122 +1,523 @@
 <!--
   Copyright © 2026 Yoann Peronneau. All rights reserved.
 
-  This software is proprietary. Unauthorized copying, modification,
-  distribution, or use of this file, in whole or in part, via any
-  medium, is strictly prohibited without prior written consent of
-  the copyright holder.
+  Bookmarklet install page for the Sailing Jury Decision tool.
+  Hosted at https://yoann.github.io/jury-tools/install.html
 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Install — Fill jury decision (sailti / RRS / m2s)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    :root {
-      --bg: #fafafa;
-      --fg: #1a1a1a;
-      --muted: #5a5a5a;
-      --accent: #1a73e8;
-      --accent-hover: #1761c7;
-      --border: #e0e0e0;
-      --code-bg: #f1f3f4;
-    }
-    * { box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-      background: var(--bg);
-      color: var(--fg);
-      max-width: 720px;
-      margin: 40px auto;
-      padding: 0 24px;
-      line-height: 1.55;
-    }
-    h1 { margin-top: 0; font-size: 28px; }
-    h2 { margin-top: 32px; font-size: 18px; }
-    p, li { color: var(--fg); }
-    .muted { color: var(--muted); font-size: 14px; }
-    .install-area {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 24px;
-      margin: 24px 0;
-      text-align: center;
-    }
-    .bookmarklet {
-      display: inline-block;
-      padding: 12px 22px;
-      background: var(--accent);
-      color: white;
-      text-decoration: none;
-      border-radius: 6px;
-      font-weight: 600;
-      font-size: 16px;
-      cursor: grab;
-      user-select: none;
-    }
-    .bookmarklet:hover { background: var(--accent-hover); }
-    .bookmarklet:active { cursor: grabbing; }
-    .arrow { font-size: 22px; color: var(--muted); margin: 12px 0 0; }
-    code, pre {
-      font-family: Menlo, Consolas, "Courier New", monospace;
-      background: var(--code-bg);
-      border-radius: 4px;
-    }
-    code { padding: 1px 6px; font-size: 13px; }
-    pre { padding: 12px; overflow-x: auto; font-size: 12px; }
-    ol li { margin-bottom: 6px; }
-    .note {
-      background: #fff7e0;
-      border-left: 3px solid #f4b400;
-      padding: 10px 14px;
-      margin: 16px 0;
-      font-size: 14px;
-      border-radius: 0 4px 4px 0;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Install the bookmarklet — Sailing Jury Decision</title>
+<meta name="description" content="Install the Fill jury decision bookmarklet for sailti, manage2sail, and racingrulesofsailing.org.">
+
+<link rel="icon" type="image/svg+xml" href="protest-flag.svg">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..700,30..100;1,9..144,300..700,30..100&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #fafaf6;
+  --bg-warm: #f4f0e6;
+  --text: #1a1814;
+  --text-muted: #585348;
+  --text-faint: #a8a294;
+  --accent: #c4342a;
+  --accent-dark: #9a261d;
+  --accent-soft: #f5e0dd;
+  --rule: #e3dccd;
+  --code-bg: #efeae0;
+  --display: 'Fraunces', 'Cormorant Garamond', Georgia, serif;
+  --body: 'Inter Tight', system-ui, -apple-system, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection { background: var(--accent); color: var(--bg); }
+
+.container {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+section { padding: 4rem 0; }
+
+a { color: inherit; text-decoration: none; }
+
+.inline-link {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 1px;
+  transition: opacity 0.2s;
+}
+
+.inline-link:hover { opacity: 0.7; }
+
+.rule {
+  width: 48px;
+  height: 2px;
+  background: var(--accent);
+  margin-bottom: 1.75rem;
+}
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+  margin-bottom: 1.25rem;
+}
+
+/* HEADER */
+header {
+  padding: 1.75rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+header .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1120px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: 17px;
+  font-variation-settings: 'opsz' 20, 'SOFT' 40;
+  letter-spacing: -0.015em;
+  color: var(--text);
+}
+
+.brand:hover { color: var(--accent); }
+
+.brand-flag {
+  width: 14px;
+  height: 18px;
+  background: var(--accent);
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+.back-link {
+  font-size: 14px;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: color 0.2s;
+}
+
+.back-link:hover { color: var(--accent); }
+
+.back-link .arrow {
+  transition: transform 0.2s;
+}
+
+.back-link:hover .arrow { transform: translateX(-3px); }
+
+/* HERO / page title */
+.page-title-section {
+  padding: 5rem 0 2.5rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.page-title {
+  font-family: var(--display);
+  font-size: clamp(2.3rem, 5vw, 3.6rem);
+  font-weight: 400;
+  letter-spacing: -0.022em;
+  line-height: 1.05;
+  font-variation-settings: 'opsz' 144, 'SOFT' 30;
+  margin-bottom: 1.5rem;
+}
+
+.page-title em {
+  font-style: italic;
+  color: var(--accent);
+  font-variation-settings: 'opsz' 144, 'SOFT' 100;
+}
+
+.page-intro {
+  font-size: 1.15rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+  max-width: 620px;
+}
+
+/* Section headings within page */
+.section-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.section-heading-num {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.section-heading h2 {
+  font-family: var(--display);
+  font-size: 1.85rem;
+  font-weight: 500;
+  font-variation-settings: 'opsz' 36, 'SOFT' 50;
+  letter-spacing: -0.018em;
+  line-height: 1.15;
+}
+
+.lede {
+  color: var(--text-muted);
+  margin-bottom: 1.75rem;
+  line-height: 1.6;
+}
+
+/* Install area — the bookmarklet draggable button */
+.install-area {
+  background: var(--text);
+  color: var(--bg);
+  border-radius: 4px;
+  padding: 3rem 2.5rem;
+  text-align: center;
+  margin: 2.5rem 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.install-area::before {
+  content: '';
+  position: absolute;
+  top: -30%; right: -10%;
+  width: 50%;
+  height: 80%;
+  background: radial-gradient(ellipse at center, rgba(196, 52, 42, 0.18) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.bookmarklet {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.95rem 1.75rem;
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 3px;
+  font-family: var(--body);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: grab;
+  user-select: none;
+  text-decoration: none;
+  transition: background 0.2s;
+  position: relative;
+  z-index: 1;
+}
+
+.bookmarklet:hover { background: var(--accent); color: var(--bg); }
+.bookmarklet:active { cursor: grabbing; }
+
+.bookmarklet-flag {
+  width: 13px;
+  height: 16px;
+  background: var(--accent);
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+.bookmarklet:hover .bookmarklet-flag { background: var(--bg); }
+
+.drag-hint {
+  margin-top: 1.5rem;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: rgba(250, 250, 246, 0.6);
+  letter-spacing: 0.05em;
+  position: relative;
+  z-index: 1;
+}
+
+/* Note callout */
+.note {
+  background: var(--bg-warm);
+  border-left: 3px solid var(--accent);
+  padding: 1rem 1.25rem;
+  margin: 1.75rem 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.note strong { color: var(--text); }
+
+code {
+  font-family: var(--mono);
+  background: var(--code-bg);
+  padding: 2px 6px;
+  font-size: 13.5px;
+  border-radius: 3px;
+  color: var(--text);
+}
+
+/* Use steps */
+.use-steps {
+  list-style: none;
+  counter-reset: u-step;
+  margin: 1.5rem 0;
+}
+
+.use-steps li {
+  counter-increment: u-step;
+  position: relative;
+  padding: 1.3rem 0 1.3rem 62px;
+  border-bottom: 1px solid var(--rule);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.use-steps li:last-child { border-bottom: none; }
+
+.use-steps li::before {
+  content: counter(u-step, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 1.3rem;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--accent);
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  padding-top: 4px;
+}
+
+.use-steps strong { font-weight: 600; }
+
+.muted-note {
+  color: var(--text-muted);
+  font-size: 14.5px;
+  font-style: italic;
+  line-height: 1.6;
+  margin-top: 1.5rem;
+}
+
+/* Footer */
+footer {
+  padding: 3rem 0 2.5rem;
+  border-top: 1px solid var(--rule);
+  background: var(--bg-warm);
+  margin-top: 3rem;
+}
+
+footer .container { max-width: 1120px; }
+
+.footer-grid {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin-bottom: 2.5rem;
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-family: var(--display);
+  font-size: 1.15rem;
+  font-weight: 500;
+  font-variation-settings: 'opsz' 20, 'SOFT' 40;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.015em;
+}
+
+.footer-tagline {
+  color: var(--text-muted);
+  font-size: 14px;
+  max-width: 280px;
+  line-height: 1.55;
+}
+
+.footer-links {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  font-size: 14px;
+}
+
+.footer-links a {
+  color: var(--text-muted);
+  transition: color 0.2s;
+}
+
+.footer-links a:hover { color: var(--accent); }
+
+.footer-bottom {
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text-faint);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .container { padding: 0 1.5rem; }
+  section { padding: 2.5rem 0; }
+  .page-title-section { padding: 3rem 0 2rem; }
+  .install-area { padding: 2.25rem 1.5rem; }
+  .section-heading { flex-direction: column; gap: 0.25rem; }
+  .footer-grid { flex-direction: column; }
+  .footer-bottom { flex-direction: column; }
+}
+</style>
 </head>
 <body>
-  <h1>Fill jury decision</h1>
-  <p>This bookmarklet pastes a sailing jury decision from your Google Doc into the right form, in one click. It automatically detects whether the page is <b>sailti</b>, <b>RRS</b> (racingrulesofsailing.org), or <b>m2s</b> (manage2sail) and fills the matching fields.</p>
 
-  <h2>1. Install</h2>
-  <p>Drag the button below onto your bookmarks bar:</p>
-
-  <div class="install-area">
-    <a class="bookmarklet" id="bm" href="#" draggable="true">Fill jury decision</a>
-    <p class="arrow">↑ drag me up to the bookmarks bar</p>
+<header>
+  <div class="container">
+    <a href="index.html" class="brand">
+      <span class="brand-flag"></span>
+      Sailing Jury Decision
+    </a>
+    <a href="index.html" class="back-link">
+      <span class="arrow">←</span>
+      Back to homepage
+    </a>
   </div>
+</header>
 
-  <div class="note">
-    <b>Bookmarks bar hidden?</b> Press <code>Ctrl+Shift+B</code> (Windows / Linux) or <code>⌘+Shift+B</code> (macOS) to show it.
+<main>
+
+<section class="page-title-section">
+  <div class="container">
+    <div class="eyebrow">The bookmarklet</div>
+    <h1 class="page-title">Install the <em>Fill jury decision</em> bookmarklet.</h1>
+    <p class="page-intro">
+      This bookmarklet pastes a sailing jury decision from your Google Doc into the right form, in one click. It automatically detects whether the page is <strong>sailti</strong>, <strong>RRS</strong> (racingrulesofsailing.org), or <strong>m2s</strong> (manage2sail) and fills the matching fields.
+    </p>
   </div>
+</section>
 
-  <h2>2. Use</h2>
-  <ol>
-    <li>In the Google Doc, click the <b>red flag icon</b> on the right edge, then <b>Open jury panel</b>.</li>
-    <li>In the panel, click <b>Copy for sailti / RRS / m2s</b>, then <b>Copy to clipboard</b>.</li>
-    <li>Open the decision form — <b>sailti</b>, <b>RRS</b>, or <b>m2s</b>.</li>
-    <li>Click the <b>Fill jury decision</b> bookmark.</li>
-  </ol>
-  <p class="muted">On RRS and m2s the bookmarklet switches to the <i>Hearing</i> tab automatically before filling. Validity checks, witnesses, scoring, and other system-specific fields stay manual.</p>
+<section>
+  <div class="container">
+    <div class="section-heading">
+      <div class="section-heading-num">01</div>
+      <h2>Drag the button to your bookmarks bar</h2>
+    </div>
 
-  <h2>Updates</h2>
-  <p class="muted">
-    The bookmark loads the latest script from this site on every click — no need to reinstall when the script changes.
-  </p>
+    <div class="install-area">
+      <a class="bookmarklet" id="bm" href="#" draggable="true">
+        <span class="bookmarklet-flag"></span>
+        Fill jury decision
+      </a>
+      <div class="drag-hint">↑ DRAG ME UP TO THE BOOKMARKS BAR</div>
+    </div>
 
-  <script>
-    // Build the loader URL relative to this page's location, so the same
-    // install.html works wherever it's hosted without editing.
-    const scriptUrl = new URL('jury-fill.js', window.location.href).href;
-    const loader =
-      "javascript:(function(){var s=document.createElement('script');" +
-      "s.src='" + scriptUrl + "?t='+Date.now();" +
-      "s.onerror=function(){alert('Could not load script from '+s.src);};" +
-      "document.body.appendChild(s);})();";
-    document.getElementById('bm').href = loader;
-  </script>
+    <div class="note">
+      <strong>Bookmarks bar hidden?</strong> Press <code>Ctrl+Shift+B</code> (Windows / Linux) or <code>⌘+Shift+B</code> (macOS) to show it. On Safari: <em>View → Show Favorites Bar</em>.
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-heading">
+      <div class="section-heading-num">02</div>
+      <h2>How to use it</h2>
+    </div>
+    <p class="lede">Once the bookmarklet sits on your bookmarks bar, you can use it on any sailti, RRS, or m2s decision form.</p>
+
+    <ol class="use-steps">
+      <li>In your Google Doc, click the <strong>red flag icon</strong> on the right edge to open the jury panel.</li>
+      <li>In the panel, click <strong>Copy for sailti / RRS / m2s</strong>. The payload is automatically placed on your clipboard.</li>
+      <li>Open the decision form in another tab — <strong>sailti</strong>, <strong>RRS</strong>, or <strong>m2s</strong>.</li>
+      <li>Click the <strong>Fill jury decision</strong> bookmark. Fields populate automatically.</li>
+    </ol>
+
+    <p class="muted-note">On RRS and m2s the bookmarklet switches to the <em>Hearing</em> tab automatically before filling. Validity checks, witnesses, scoring, and other system-specific fields stay manual — review them before submitting.</p>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-heading">
+      <div class="section-heading-num">03</div>
+      <h2>Updates</h2>
+    </div>
+    <p class="lede">The bookmarklet loads the latest version of the script from this site every time you click it. There's no need to reinstall when fields or filling rules change.</p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">
+          <span class="brand-flag" style="width:12px;height:15px;"></span>
+          Sailing Jury Decision
+        </div>
+        <p class="footer-tagline">A free Google Docs add-on for sailing race jury panels.</p>
+      </div>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="index.html#what">What it does</a>
+        <a href="index.html#how">How it works</a>
+        <a href="index.html#install">Install</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div>© 2026 Yoann Peronneau. All rights reserved.</div>
+      <div>Not affiliated with World Sailing, sailti, manage2sail, or RRS.</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Build the loader URL relative to this page's location, so the same
+  // install.html works wherever it's hosted without editing.
+  const scriptUrl = new URL('jury-fill.js', window.location.href).href;
+  const loader =
+    "javascript:(function(){var s=document.createElement('script');" +
+    "s.src='" + scriptUrl + "?t='+Date.now();" +
+    "s.onerror=function(){alert('Could not load script from '+s.src);};" +
+    "document.body.appendChild(s);})();";
+  document.getElementById('bm').href = loader;
+</script>
+
 </body>
 </html>
