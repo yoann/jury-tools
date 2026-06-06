@@ -1,0 +1,947 @@
+<!--
+  Copyright © 2026 Yoann Peronneau. All rights reserved.
+
+  Landing page for the Sailing Jury Decision Google Workspace add-on.
+  Hosted at https://yoann.github.io/jury-tools/
+
+  When the Marketplace listing is approved, replace MARKETPLACE_URL in the
+  install button's href below with the actual install URL from Google, and
+  remove the `disabled` class from the anchor.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sailing Jury Decision — A Google Docs add-on for sailing race juries</title>
+<meta name="description" content="A Google Docs add-on that helps sailing race jury panels draft and file decisions across sailti, manage2sail, and racingrulesofsailing.org without retyping.">
+<meta name="author" content="Yoann Peronneau">
+
+<link rel="icon" type="image/svg+xml" href="protest-flag.svg">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..700,30..100;1,9..144,300..700,30..100&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #fafaf6;
+  --bg-warm: #f4f0e6;
+  --text: #1a1814;
+  --text-muted: #585348;
+  --text-faint: #a8a294;
+  --accent: #c4342a;
+  --accent-dark: #9a261d;
+  --accent-soft: #f5e0dd;
+  --rule: #e3dccd;
+  --dark-bg: #16140f;
+  --dark-card: #211d17;
+  --dark-border: #322c21;
+  --dark-text-muted: #b8b0a0;
+  --display: 'Fraunces', 'Cormorant Garamond', Georgia, serif;
+  --body: 'Inter Tight', system-ui, -apple-system, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+::selection { background: var(--accent); color: var(--bg); }
+
+.container {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+section { padding: 7rem 0; position: relative; }
+
+a { color: inherit; text-decoration: none; }
+
+.rule {
+  width: 48px;
+  height: 2px;
+  background: var(--accent);
+  margin-bottom: 1.75rem;
+}
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+  margin-bottom: 1.25rem;
+}
+
+/* HEADER */
+header {
+  padding: 1.75rem 0;
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 10;
+}
+
+header .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: 17px;
+  font-variation-settings: 'opsz' 20, 'SOFT' 40;
+  letter-spacing: -0.015em;
+}
+
+.brand-flag {
+  width: 14px;
+  height: 18px;
+  background: var(--accent);
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+nav { display: flex; gap: 2.25rem; font-size: 14px; }
+
+nav a {
+  color: var(--text-muted);
+  transition: color 0.2s;
+  position: relative;
+}
+
+nav a:hover { color: var(--text); }
+
+/* HERO */
+.hero {
+  min-height: 92vh;
+  display: flex;
+  align-items: center;
+  padding-top: 7rem;
+  padding-bottom: 5rem;
+  position: relative;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0; right: -10%;
+  width: 60%;
+  height: 100%;
+  background: radial-gradient(ellipse at top right, var(--accent-soft) 0%, transparent 60%);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.45fr 1fr;
+  gap: 5rem;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-title {
+  font-family: var(--display);
+  font-size: clamp(2.6rem, 5.8vw, 4.8rem);
+  line-height: 1.03;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  font-variation-settings: 'opsz' 144, 'SOFT' 30;
+  margin-bottom: 2rem;
+  max-width: 620px;
+}
+
+.hero-title em {
+  font-style: italic;
+  color: var(--accent);
+  font-weight: 400;
+  font-variation-settings: 'opsz' 144, 'SOFT' 100;
+}
+
+.hero-subtitle {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+  max-width: 480px;
+  margin-bottom: 2.75rem;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Flag illustration */
+.flag-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  perspective: 600px;
+}
+
+.flag-svg {
+  width: 100%;
+  max-width: 340px;
+  filter: drop-shadow(0 14px 40px rgba(196, 52, 42, 0.25));
+}
+
+@keyframes flag-flutter {
+  0%, 100% { transform: rotateY(0deg) skewY(0deg); }
+  25%      { transform: rotateY(-8deg) skewY(-1deg); }
+  50%      { transform: rotateY(0deg) skewY(0.5deg); }
+  75%      { transform: rotateY(6deg) skewY(-0.5deg); }
+}
+
+.flag-fabric {
+  transform-origin: 19px center;
+  animation: flag-flutter 6s ease-in-out infinite;
+  transform-style: preserve-3d;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.9rem 1.6rem;
+  font-family: var(--body);
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 3px;
+  transition: all 0.25s ease;
+  cursor: pointer;
+  border: none;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.btn-primary:hover {
+  background: var(--accent);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--text);
+}
+
+.btn-secondary:hover {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.btn-disabled {
+  background: transparent;
+  color: var(--text-faint);
+  border: 1px dashed var(--rule);
+  cursor: default;
+  pointer-events: none;
+  font-style: italic;
+}
+
+.btn .arrow {
+  transition: transform 0.2s;
+}
+
+.btn:not(.btn-disabled):hover .arrow {
+  transform: translateX(3px);
+}
+
+/* Section headers */
+.section-header { max-width: 720px; margin-bottom: 4.5rem; }
+
+.section-title {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.2vw, 3.1rem);
+  font-weight: 400;
+  letter-spacing: -0.022em;
+  line-height: 1.08;
+  font-variation-settings: 'opsz' 80, 'SOFT' 30;
+  margin-bottom: 1.25rem;
+}
+
+.section-title em {
+  font-style: italic;
+  color: var(--accent);
+  font-variation-settings: 'opsz' 80, 'SOFT' 100;
+}
+
+.section-intro {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  max-width: 580px;
+  line-height: 1.55;
+}
+
+/* Features */
+#what {
+  background: linear-gradient(180deg, transparent 0%, var(--bg-warm) 60%, transparent 100%);
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3.5rem;
+}
+
+.feature { position: relative; padding-top: 1.5rem; }
+
+.feature::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 28px;
+  height: 1px;
+  background: var(--accent);
+}
+
+.feature-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+  margin-bottom: 1.25rem;
+}
+
+.feature-title {
+  font-family: var(--display);
+  font-size: 1.45rem;
+  font-weight: 500;
+  font-variation-settings: 'opsz' 36, 'SOFT' 50;
+  margin-bottom: 0.85rem;
+  letter-spacing: -0.018em;
+  line-height: 1.2;
+}
+
+.feature-desc {
+  color: var(--text-muted);
+  line-height: 1.6;
+  font-size: 15.5px;
+}
+
+/* Steps */
+.steps { display: flex; flex-direction: column; }
+
+.step {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 3rem;
+  padding: 2.5rem 0;
+  border-bottom: 1px solid var(--rule);
+  align-items: start;
+}
+
+.step:last-child { border-bottom: none; }
+
+.step-num {
+  font-family: var(--display);
+  font-size: 3.2rem;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--accent);
+  font-variation-settings: 'opsz' 144, 'SOFT' 100;
+  line-height: 0.95;
+}
+
+.step-content { padding-top: 0.85rem; }
+
+.step-title {
+  font-family: var(--display);
+  font-size: 1.5rem;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  margin-bottom: 0.65rem;
+  font-variation-settings: 'opsz' 36, 'SOFT' 40;
+}
+
+.step-desc {
+  color: var(--text-muted);
+  max-width: 620px;
+  line-height: 1.6;
+}
+
+/* Install */
+#install {
+  background: var(--dark-bg);
+  color: var(--bg);
+  padding: 8rem 0;
+  position: relative;
+  overflow: hidden;
+}
+
+#install::before {
+  content: '';
+  position: absolute;
+  top: -10%; right: -10%;
+  width: 50%;
+  height: 60%;
+  background: radial-gradient(ellipse at center, rgba(196, 52, 42, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+#install .section-title { color: var(--bg); }
+#install .section-intro { color: var(--dark-text-muted); }
+#install .eyebrow { color: #f5887e; }
+#install .rule { background: var(--accent); }
+
+.install-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 3rem;
+  position: relative;
+  z-index: 1;
+}
+
+.install-card {
+  background: var(--dark-card);
+  padding: 2.75rem 2.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--dark-border);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.install-card-tag {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+  margin-bottom: 0.9rem;
+}
+
+.install-card h3 {
+  font-family: var(--display);
+  font-size: 1.6rem;
+  font-weight: 500;
+  font-variation-settings: 'opsz' 36, 'SOFT' 50;
+  margin-bottom: 0.9rem;
+  color: var(--bg);
+  letter-spacing: -0.015em;
+}
+
+.install-card p {
+  color: var(--dark-text-muted);
+  margin-bottom: 1.75rem;
+  line-height: 1.6;
+  font-size: 15.5px;
+  flex-grow: 1;
+}
+
+.install-card .btn-primary {
+  background: var(--bg);
+  color: var(--text);
+  align-self: flex-start;
+}
+
+.install-card .btn-primary:hover { background: var(--accent); color: var(--bg); }
+
+.install-card .btn-disabled {
+  border-color: var(--dark-border);
+  color: var(--text-faint);
+}
+
+/* About */
+#about {
+  padding: 6rem 0;
+}
+
+.about-content {
+  max-width: 760px;
+}
+
+.about-content p {
+  font-size: 1.15rem;
+  line-height: 1.65;
+  color: var(--text-muted);
+  margin-bottom: 1.25rem;
+}
+
+.about-signature {
+  margin-top: 2.5rem;
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 1.2rem;
+  font-variation-settings: 'opsz' 36, 'SOFT' 100;
+  color: var(--text);
+}
+
+/* Template */
+.template-block {
+  max-width: 740px;
+}
+
+.template-steps {
+  list-style: none;
+  counter-reset: t-step;
+  margin-bottom: 2.75rem;
+}
+
+.template-steps li {
+  counter-increment: t-step;
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  gap: 1.25rem;
+  padding: 1.4rem 0;
+  border-bottom: 1px solid var(--rule);
+  align-items: start;
+  font-size: 16.5px;
+  line-height: 1.55;
+}
+
+.template-steps li:last-child { border-bottom: none; }
+
+.template-steps li::before {
+  content: counter(t-step, decimal-leading-zero);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--accent);
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  padding-top: 5px;
+}
+
+.template-steps em {
+  font-family: var(--display);
+  font-style: italic;
+  font-variation-settings: 'opsz' 36, 'SOFT' 100;
+  color: var(--text);
+  font-size: 17px;
+}
+
+.template-steps strong {
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Footer */
+footer {
+  padding: 4rem 0 3rem;
+  border-top: 1px solid var(--rule);
+  background: var(--bg-warm);
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 3rem;
+  margin-bottom: 3rem;
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-family: var(--display);
+  font-size: 1.15rem;
+  font-weight: 500;
+  font-variation-settings: 'opsz' 20, 'SOFT' 40;
+  margin-bottom: 0.6rem;
+  letter-spacing: -0.015em;
+}
+
+.footer-tagline {
+  color: var(--text-muted);
+  font-size: 14px;
+  max-width: 280px;
+  line-height: 1.55;
+}
+
+.footer-col h4 {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+  margin-bottom: 1.1rem;
+}
+
+.footer-col ul { list-style: none; }
+.footer-col ul li { margin-bottom: 0.55rem; }
+
+.footer-col a {
+  color: var(--text-muted);
+  font-size: 14.5px;
+  transition: color 0.2s;
+}
+
+.footer-col a:hover { color: var(--accent); }
+
+.footer-bottom {
+  padding-top: 2rem;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text-faint);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* Reveal animations on scroll */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Hero load animation */
+.hero-anim {
+  opacity: 0;
+  animation: fade-up 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.hero-anim-1 { animation-delay: 0.1s; }
+.hero-anim-2 { animation-delay: 0.25s; }
+.hero-anim-3 { animation-delay: 0.4s; }
+.hero-anim-4 { animation-delay: 0.55s; }
+.hero-anim-5 { animation-delay: 0.5s; animation-duration: 1.1s; }
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 920px) {
+  .hero-grid { grid-template-columns: 1fr; gap: 3rem; }
+  .flag-container { order: -1; }
+  .flag-svg { max-width: 220px; }
+  .features { grid-template-columns: 1fr; gap: 2.5rem; }
+  .install-cards { grid-template-columns: 1fr; }
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+  nav { display: none; }
+  section { padding: 5rem 0; }
+}
+
+@media (max-width: 640px) {
+  .container { padding: 0 1.5rem; }
+  .step { grid-template-columns: 60px 1fr; gap: 1.5rem; padding: 2rem 0; }
+  .step-num { font-size: 2.2rem; }
+  .install-card { padding: 2rem 1.75rem; }
+  .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
+  .footer-bottom { flex-direction: column; }
+  header { padding: 1.25rem 0; }
+  .hero-actions { width: 100%; }
+  .hero-actions .btn { flex: 1; justify-content: center; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <a href="#" class="brand">
+      <span class="brand-flag"></span>
+      Sailing Jury Decision
+    </a>
+    <nav>
+      <a href="#what">What it does</a>
+      <a href="#how">How it works</a>
+      <a href="#install">Install</a>
+      <a href="#template">Template</a>
+      <a href="#about">About</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <div class="eyebrow hero-anim hero-anim-1">Google Docs add-on · Free</div>
+        <h1 class="hero-title hero-anim hero-anim-2">
+          Draft jury decisions <em>once</em>. File them everywhere.
+        </h1>
+        <p class="hero-subtitle hero-anim hero-anim-3">
+          A Google Docs add-on for international sailing race juries — write your decision in the standard template, then file into sailti, manage2sail, or racingrulesofsailing.org without retyping anything.
+        </p>
+        <div class="hero-actions hero-anim hero-anim-4">
+          <a href="#install" class="btn btn-primary">
+            Get the add-on
+            <span class="arrow">→</span>
+          </a>
+          <a href="#how" class="btn btn-secondary">See how it works</a>
+        </div>
+      </div>
+
+      <div class="flag-container hero-anim hero-anim-5">
+        <svg class="flag-svg" viewBox="0 0 240 280" xmlns="http://www.w3.org/2000/svg" aria-label="Sailing protest flag">
+          <rect x="14" y="18" width="6" height="245" rx="3" fill="#5a5448"/>
+          <circle cx="17" cy="18" r="7" fill="#5a5448"/>
+          <g class="flag-fabric">
+            <path d="M 20 40 L 218 36 L 222 64 Q 215 70 222 78 L 220 110 Q 213 116 220 124 L 222 158 Q 215 164 222 172 L 218 196 L 20 192 Z" fill="#c4342a"/>
+            <path d="M 188 38 L 218 36 L 222 64 Q 215 70 222 78 L 220 110 Q 213 116 220 124 L 222 158 Q 215 164 222 172 L 218 196 L 188 194 Z" fill="#000" opacity="0.08"/>
+            <path d="M 20 40 L 90 38 L 88 192 L 20 192 Z" fill="#fff" opacity="0.04"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="what">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="rule"></div>
+      <div class="eyebrow">What it does</div>
+      <h2 class="section-title">The work behind a jury decision, <em>minus</em> the busywork.</h2>
+      <p class="section-intro">A protest decision involves the same content typed into three different systems. This add-on writes it once and copies it everywhere — including the dropdown chips for jury members that nothing else can read.</p>
+    </div>
+
+    <div class="features">
+      <div class="feature reveal">
+        <div class="feature-num">01</div>
+        <h3 class="feature-title">Standard wording library</h3>
+        <p class="feature-desc">A side panel with common procedural language, facts patterns, and conclusion templates — organized by category, searchable, one click to insert at the cursor.</p>
+      </div>
+      <div class="feature reveal">
+        <div class="feature-num">02</div>
+        <h3 class="feature-title">Cross-platform filing</h3>
+        <p class="feature-desc">One Copy action serializes chairman, panel members, scribe, facts found, conclusion, and applicable rules for sailti, manage2sail, and RRS in one structured payload.</p>
+      </div>
+      <div class="feature reveal">
+        <div class="feature-num">03</div>
+        <h3 class="feature-title">Smart-chip awareness</h3>
+        <p class="feature-desc">Reads jury member dropdowns that the standard Apps Script API can't see, by exporting the document to DOCX and parsing chip values directly.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="rule"></div>
+      <div class="eyebrow">How it works</div>
+      <h2 class="section-title">From hearing to filed decision in six steps.</h2>
+    </div>
+
+    <div class="steps">
+      <div class="step reveal">
+        <div class="step-num">i</div>
+        <div class="step-content">
+          <h3 class="step-title">Open your jury decision document</h3>
+          <p class="step-desc">Start from the standard template — Procedural Matters, Facts Found, Conclusion, Decision — with jury members entered as smart-chip dropdowns at the top.</p>
+        </div>
+      </div>
+
+      <div class="step reveal">
+        <div class="step-num">ii</div>
+        <div class="step-content">
+          <h3 class="step-title">Click the red flag in the right panel</h3>
+          <p class="step-desc">Once installed, the add-on lives behind a red flag icon in Google Docs' right-edge panel. One click opens the jury workspace.</p>
+        </div>
+      </div>
+
+      <div class="step reveal">
+        <div class="step-num">iii</div>
+        <div class="step-content">
+          <h3 class="step-title">Draft with the wording library</h3>
+          <p class="step-desc">Browse standard procedural language by category, search by keyword, click any snippet to insert at your cursor. Set the decision date and time with one click.</p>
+        </div>
+      </div>
+
+      <div class="step reveal">
+        <div class="step-num">iv</div>
+        <div class="step-content">
+          <h3 class="step-title">Copy for sailti / RRS / m2s</h3>
+          <p class="step-desc">When the decision is ready, click Copy. The add-on extracts every field — including the smart-chip dropdowns — and copies a structured payload to your clipboard.</p>
+        </div>
+      </div>
+
+      <div class="step reveal">
+        <div class="step-num">v</div>
+        <div class="step-content">
+          <h3 class="step-title">Open the filing system in a new tab</h3>
+          <p class="step-desc">Navigate to sailti, manage2sail, or racingrulesofsailing.org — whichever your event uses to officially file decisions.</p>
+        </div>
+      </div>
+
+      <div class="step reveal">
+        <div class="step-num">vi</div>
+        <div class="step-content">
+          <h3 class="step-title">Click the Fill jury decision bookmarklet</h3>
+          <p class="step-desc">A small browser bookmarklet pastes every field into the right form input — chairman, scribe, panel members, dates, applicable rules, decision text. Review, submit.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="install">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="rule"></div>
+      <div class="eyebrow">Install</div>
+      <h2 class="section-title">Two pieces. <em>Both free.</em></h2>
+      <p class="section-intro">The Google Docs add-on and the browser bookmarklet work as a pair. You'll need both — neither one charges anything.</p>
+    </div>
+
+    <div class="install-cards">
+      <div class="install-card reveal">
+        <div class="install-card-tag">Piece one</div>
+        <h3>Google Docs add-on</h3>
+        <p>Installs from the Google Workspace Marketplace. Accept the permissions and the red flag appears in any Google Doc, behind the right-edge icon panel.</p>
+        <!-- TODO: when Marketplace approves the listing, replace this href with the install URL
+             and remove the btn-disabled class. -->
+        <a href="#" class="btn btn-primary btn-disabled">
+          Marketplace listing — pending approval
+        </a>
+      </div>
+
+      <div class="install-card reveal">
+        <div class="install-card-tag">Piece two</div>
+        <h3>Browser bookmarklet</h3>
+        <p>A small JavaScript snippet you drag to your browser's bookmarks bar. Click it on sailti, manage2sail, or RRS to fill the decision form with whatever is on your clipboard.</p>
+        <a href="install.html" class="btn btn-primary">
+          Install the bookmarklet
+          <span class="arrow">→</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="template">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="rule"></div>
+      <div class="eyebrow">The template</div>
+      <h2 class="section-title">Start from the standard <em>jury decision</em> template.</h2>
+      <p class="section-intro">
+        The add-on reads a specific document structure — Procedural Matters, Facts Found, Conclusion, and Decision sections, with jury members as smart-chip dropdowns at the top, plus table fields for the decision date, time, and applicable rules. The simplest way to get this right is to duplicate the working template.
+      </p>
+    </div>
+
+    <div class="template-block reveal">
+      <ol class="template-steps">
+        <li>Click <strong>Duplicate the template</strong> below — Google Docs will show a "Make a copy" prompt.</li>
+        <li>Confirm the copy. It saves to your Drive.</li>
+        <li>Rename the copy for your event (e.g., <em>"World Sailing Trophy 2026 — Decision template"</em>).</li>
+        <li>Replace the placeholder jury member chips with your actual panel. Then duplicate again per decision, keeping the chips intact.</li>
+      </ol>
+
+      <a href="https://docs.google.com/document/d/1S9olFrfcYZWO6kesL7P28t8jFdscRmoN2RX7zeekuC8/copy"
+         class="btn btn-primary"
+         target="_blank" rel="noopener">
+        Duplicate the template
+        <span class="arrow">→</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="rule"></div>
+      <div class="eyebrow">About</div>
+      <h2 class="section-title">An international judge's personal project.</h2>
+    </div>
+    <div class="about-content reveal">
+      <p>
+        Sailing Jury Decision is built and maintained by Yoann Peronneau, an international sailing judge. It's a personal effort to reduce the repetitive paperwork that surrounds protest decisions — not affiliated with World Sailing, manage2sail, sailti, racingrulesofsailing.org, or any sailing federation.
+      </p>
+      <p>
+        It's provided free of charge as a contribution to the international judging community. No subscriptions, no premium tier, no telemetry. The code reads your active decision document, copies it to your clipboard, and stops there — your data never reaches the developer.
+      </p>
+      <div class="about-signature">— Yoann Peronneau, Antibes</div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">
+          <span class="brand-flag" style="width:12px;height:15px;"></span>
+          Sailing Jury Decision
+        </div>
+        <p class="footer-tagline">A free Google Docs add-on for sailing race jury panels.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="#what">What it does</a></li>
+          <li><a href="#how">How it works</a></li>
+          <li><a href="#install">Install</a></li>
+          <li><a href="#template">Template</a></li>
+          <li><a href="install.html">Bookmarklet</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="privacy.html">Privacy policy</a></li>
+          <li><a href="terms.html">Terms of service</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="mailto:[YOUR_EMAIL]">Email the developer</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div>© 2026 Yoann Peronneau. All rights reserved.</div>
+      <div>Not affiliated with World Sailing, sailti, manage2sail, or RRS.</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    }
+  }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
