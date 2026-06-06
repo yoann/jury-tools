@@ -1,0 +1,105 @@
+<!--
+  Pandoc template for generating styled HTML pages from markdown.
+  Used to convert PRIVACY.md and TERMS.md into privacy.html and terms.html.
+
+  Usage:
+    pandoc PRIVACY.md --template=pandoc-template.html -o privacy.html
+    pandoc TERMS.md   --template=pandoc-template.html -o terms.html
+
+  Required markdown YAML front matter:
+    ---
+    title: Privacy Policy
+    eyebrow: Legal
+    page-meta: Effective 1 January 2026 · Last updated 1 January 2026
+    ---
+-->
+<!DOCTYPE html>
+<html lang="$lang$">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>$title$ — Sailing Jury Decision</title>
+
+<link rel="icon" type="image/svg+xml" href="protest-flag.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="protest-flag-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="protest-flag-180.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..700,30..100;1,9..144,300..700,30..100&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+
+<style>
+  /* Page-specific narrow container for legal documents */
+  .legal-container { max-width: 780px; margin: 0 auto; padding: 0 2rem; }
+  section { padding: 4rem 0; }
+  @media (max-width: 640px) {
+    .legal-container { padding: 0 1.5rem; }
+    section { padding: 2.5rem 0; }
+  }
+</style>
+</head>
+<body>
+
+<header class="bordered">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <span class="brand-flag"></span>
+      Sailing Jury Decision
+    </a>
+    <a href="index.html" class="back-link">
+      <span class="arrow">←</span>
+      Back to homepage
+    </a>
+  </div>
+</header>
+
+<main>
+
+<section class="page-title-section">
+  <div class="legal-container">
+    $if(eyebrow)$<div class="eyebrow">$eyebrow$</div>$endif$
+    <h1 class="page-title">$title$</h1>
+    $if(page-meta)$<div class="page-meta">$page-meta$</div>$endif$
+  </div>
+</section>
+
+<section>
+  <div class="legal-container">
+    <div class="prose">
+$body$
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand-block">
+        <div class="footer-brand">
+          <span class="brand-flag"></span>
+          Sailing Jury Decision
+        </div>
+        <p class="footer-tagline">A free Google Docs add-on for sailing race jury panels.</p>
+      </div>
+      <nav class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="index.html#what">What it does</a>
+        <a href="index.html#how">How it works</a>
+        <a href="index.html#install">Install</a>
+        <a href="install.html">Bookmarklet</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+      </nav>
+    </div>
+    <div class="footer-bottom">
+      <div>© 2026 Yoann Peronneau. All rights reserved.</div>
+      <div>Not affiliated with World Sailing, sailti, manage2sail, or RRS.</div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

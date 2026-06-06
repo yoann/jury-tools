@@ -1,181 +1,73 @@
+<!--
+  Pandoc template for generating styled HTML pages from markdown.
+  Used to convert PRIVACY.md and TERMS.md into privacy.html and terms.html.
+
+  Usage:
+    pandoc PRIVACY.md --template=pandoc-template.html -o privacy.html
+    pandoc TERMS.md   --template=pandoc-template.html -o terms.html
+
+  Required markdown YAML front matter:
+    ---
+    title: Privacy Policy
+    eyebrow: Legal
+    page-meta: Effective 1 January 2026 · Last updated 1 January 2026
+    ---
+-->
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="generator" content="pandoc" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>TERMS</title>
-  <style>
-    /* Default styles provided by pandoc.
-    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
-    */
-    html {
-      color: #1a1a1a;
-      background-color: #fdfdfd;
-    }
-    body {
-      margin: 0 auto;
-      max-width: 36em;
-      padding-left: 50px;
-      padding-right: 50px;
-      padding-top: 50px;
-      padding-bottom: 50px;
-      hyphens: auto;
-      overflow-wrap: break-word;
-      text-rendering: optimizeLegibility;
-      font-kerning: normal;
-    }
-    @media (max-width: 600px) {
-      body {
-        font-size: 0.9em;
-        padding: 12px;
-      }
-      h1 {
-        font-size: 1.8em;
-      }
-    }
-    @media print {
-      html {
-        background-color: white;
-      }
-      body {
-        background-color: transparent;
-        color: black;
-        font-size: 12pt;
-      }
-      p, h2, h3 {
-        orphans: 3;
-        widows: 3;
-      }
-      h2, h3, h4 {
-        page-break-after: avoid;
-      }
-    }
-    p {
-      margin: 1em 0;
-    }
-    a {
-      color: #1a1a1a;
-    }
-    a:visited {
-      color: #1a1a1a;
-    }
-    img {
-      max-width: 100%;
-    }
-    svg {
-      height: auto;
-      max-width: 100%;
-    }
-    h1, h2, h3, h4, h5, h6 {
-      margin-top: 1.4em;
-    }
-    h5, h6 {
-      font-size: 1em;
-      font-style: italic;
-    }
-    h6 {
-      font-weight: normal;
-    }
-    ol, ul {
-      padding-left: 1.7em;
-      margin-top: 1em;
-    }
-    li > ol, li > ul {
-      margin-top: 0;
-    }
-    blockquote {
-      margin: 1em 0 1em 1.7em;
-      padding-left: 1em;
-      border-left: 2px solid #e6e6e6;
-      color: #606060;
-    }
-    code {
-      white-space: pre-wrap;
-      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
-      font-size: 85%;
-      margin: 0;
-      hyphens: manual;
-    }
-    pre {
-      margin: 1em 0;
-      overflow: auto;
-    }
-    pre code {
-      padding: 0;
-      overflow: visible;
-      overflow-wrap: normal;
-    }
-    .sourceCode {
-     background-color: transparent;
-     overflow: visible;
-    }
-    hr {
-      border: none;
-      border-top: 1px solid #1a1a1a;
-      height: 1px;
-      margin: 1em 0;
-    }
-    table {
-      margin: 1em 0;
-      border-collapse: collapse;
-      width: 100%;
-      overflow-x: auto;
-      display: block;
-      font-variant-numeric: lining-nums tabular-nums;
-    }
-    table caption {
-      margin-bottom: 0.75em;
-    }
-    tbody {
-      margin-top: 0.5em;
-      border-top: 1px solid #1a1a1a;
-      border-bottom: 1px solid #1a1a1a;
-    }
-    th {
-      border-top: 1px solid #1a1a1a;
-      padding: 0.25em 0.5em 0.25em 0.5em;
-    }
-    td {
-      padding: 0.125em 0.5em 0.25em 0.5em;
-    }
-    header {
-      margin-bottom: 4em;
-      text-align: center;
-    }
-    #TOC li {
-      list-style: none;
-    }
-    #TOC ul {
-      padding-left: 1.3em;
-    }
-    #TOC > ul {
-      padding-left: 0;
-    }
-    #TOC a:not(:hover) {
-      text-decoration: none;
-    }
-    span.smallcaps{font-variant: small-caps;}
-    div.columns{display: flex; gap: min(4vw, 1.5em);}
-    div.column{flex: auto; overflow-x: auto;}
-    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-    /* The extra [class] is a hack that increases specificity enough to
-       override a similar rule in reveal.js */
-    ul.task-list[class]{list-style: none;}
-    ul.task-list li input[type="checkbox"] {
-      font-size: inherit;
-      width: 0.8em;
-      margin: 0 0.8em 0.2em -1.6em;
-      vertical-align: middle;
-    }
-    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Terms of Service — Sailing Jury Decision</title>
+
+<link rel="icon" type="image/svg+xml" href="protest-flag.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="protest-flag-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="protest-flag-180.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..700,30..100;1,9..144,300..700,30..100&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+
+<style>
+  /* Page-specific narrow container for legal documents */
+  .legal-container { max-width: 780px; margin: 0 auto; padding: 0 2rem; }
+  section { padding: 4rem 0; }
+  @media (max-width: 640px) {
+    .legal-container { padding: 0 1.5rem; }
+    section { padding: 2.5rem 0; }
+  }
+</style>
 </head>
 <body>
-<h1 id="terms-of-service-sailing-jury-decision">Terms of Service —
-Sailing Jury Decision</h1>
-<p><strong>Effective date:</strong> 06 June 2026 <strong>Last
-updated:</strong> 06 June 2026</p>
+
+<header class="bordered">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <span class="brand-flag"></span>
+      Sailing Jury Decision
+    </a>
+    <a href="index.html" class="back-link">
+      <span class="arrow">←</span>
+      Back to homepage
+    </a>
+  </div>
+</header>
+
+<main>
+
+<section class="page-title-section">
+  <div class="legal-container">
+    <div class="eyebrow">Legal</div>
+    <h1 class="page-title">Terms of Service</h1>
+    <div class="page-meta">Effective 06 June 2026 · Last updated 06 June
+2026</div>
+  </div>
+</section>
+
+<section>
+  <div class="legal-container">
+    <div class="prose">
 <p>These terms govern your use of the <em>Sailing Jury Decision</em>
 Google Workspace add-on and the companion bookmarklet (together, “the
 Software”). By installing or using the Software, you agree to these
@@ -318,16 +210,50 @@ agreements.</p>
 <h2 id="changes-to-these-terms">12. Changes to these terms</h2>
 <p>The developer may update these terms from time to time. The “Last
 updated” date at the top will change. Material changes will be
-communicated via the project website at
-https://jury.peronneau.net/. Continued use of the Software after
-a change constitutes acceptance of the updated terms.</p>
+communicated via the project website at https://jury.peronneau.net/.
+Continued use of the Software after a change constitutes acceptance of
+the updated terms.</p>
 <hr />
 <h2 id="contact">13. Contact</h2>
 <blockquote>
-<p>Yoann Peronneau yoann.peronneau@gmail.com</p>
+<p>Yoann Peronneau<br />
+yoann.peronneau@gmail.com</p>
 </blockquote>
 <hr />
 <p><em>These terms are published at
 https://jury.peronneau.net/terms.html.</em></p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand-block">
+        <div class="footer-brand">
+          <span class="brand-flag"></span>
+          Sailing Jury Decision
+        </div>
+        <p class="footer-tagline">A free Google Docs add-on for sailing race jury panels.</p>
+      </div>
+      <nav class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="index.html#what">What it does</a>
+        <a href="index.html#how">How it works</a>
+        <a href="index.html#install">Install</a>
+        <a href="install.html">Bookmarklet</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+      </nav>
+    </div>
+    <div class="footer-bottom">
+      <div>© 2026 Yoann Peronneau. All rights reserved.</div>
+      <div>Not affiliated with World Sailing, sailti, manage2sail, or RRS.</div>
+    </div>
+  </div>
+</footer>
+
 </body>
 </html>

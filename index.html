@@ -4,9 +4,13 @@
   Landing page for the Sailing Jury Decision Google Workspace add-on.
   Hosted at https://jury.peronneau.net/
 
-  When the Marketplace listing is approved, replace MARKETPLACE_URL in the
-  install button's href below with the actual install URL from Google, and
-  remove the `disabled` class from the anchor.
+  Shared design system is in styles.css. Only page-specific layout
+  (hero, flag illustration, features grid, steps, install section,
+  template section, about, page-load animations) lives in this file.
+
+  When the Marketplace listing is approved, replace the href="#" on the
+  install-card's Marketplace button with the actual install URL and
+  remove the btn-disabled class.
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -24,123 +28,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..700,30..100;1,9..144,300..700,30..100&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
 
 <style>
-:root {
-  --bg: #fafaf6;
-  --bg-warm: #f4f0e6;
-  --text: #1a1814;
-  --text-muted: #585348;
-  --text-faint: #a8a294;
-  --accent: #c4342a;
-  --accent-dark: #9a261d;
-  --accent-soft: #f5e0dd;
-  --rule: #e3dccd;
-  --dark-bg: #16140f;
-  --dark-card: #211d17;
-  --dark-border: #322c21;
-  --dark-text-muted: #b8b0a0;
-  --display: 'Fraunces', 'Cormorant Garamond', Georgia, serif;
-  --body: 'Inter Tight', system-ui, -apple-system, sans-serif;
-  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
-}
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-html { scroll-behavior: smooth; }
-
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--body);
-  font-size: 17px;
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
-}
-
-::selection { background: var(--accent); color: var(--bg); }
-
-.container {
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 0 2rem;
-}
-
-section { padding: 7rem 0; position: relative; }
-
-a { color: inherit; text-decoration: none; }
-
-.inline-link {
-  color: var(--accent);
-  text-decoration: none;
-  border-bottom: 1px solid currentColor;
-  padding-bottom: 1px;
-  transition: opacity 0.2s;
-}
-
-.inline-link:hover { opacity: 0.7; }
-
-.rule {
-  width: 48px;
-  height: 2px;
-  background: var(--accent);
-  margin-bottom: 1.75rem;
-}
-
-.eyebrow {
-  font-family: var(--mono);
-  font-size: 11.5px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: var(--accent);
-  margin-bottom: 1.25rem;
-}
-
-/* HEADER */
-header {
-  padding: 1.75rem 0;
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  z-index: 10;
-}
-
-header .container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  font-family: var(--display);
-  font-weight: 500;
-  font-size: 17px;
-  font-variation-settings: 'opsz' 20, 'SOFT' 40;
-  letter-spacing: -0.015em;
-}
-
-.brand-flag {
-  width: 14px;
-  height: 18px;
-  background: var(--accent);
-  border-radius: 1px;
-  flex-shrink: 0;
-}
-
-nav { display: flex; gap: 2.25rem; font-size: 14px; }
-
-nav a {
-  color: var(--text-muted);
-  transition: color 0.2s;
-  position: relative;
-}
-
-nav a:hover { color: var(--text); }
+/* === Page-specific layout for index.html only ===
+   Shared design tokens, header, footer, buttons, typography,
+   reveal animations live in styles.css. */
 
 /* HERO */
 .hero {
@@ -232,86 +125,6 @@ nav a:hover { color: var(--text); }
   transform-style: preserve-3d;
 }
 
-/* Buttons */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  padding: 0.9rem 1.6rem;
-  font-family: var(--body);
-  font-size: 15px;
-  font-weight: 500;
-  border-radius: 3px;
-  transition: all 0.25s ease;
-  cursor: pointer;
-  border: none;
-  white-space: nowrap;
-}
-
-.btn-primary {
-  background: var(--text);
-  color: var(--bg);
-}
-
-.btn-primary:hover {
-  background: var(--accent);
-  transform: translateY(-1px);
-}
-
-.btn-secondary {
-  background: transparent;
-  color: var(--text);
-  border: 1px solid var(--text);
-}
-
-.btn-secondary:hover {
-  background: var(--text);
-  color: var(--bg);
-}
-
-.btn-disabled {
-  background: transparent;
-  color: var(--text-faint);
-  border: 1px dashed var(--rule);
-  cursor: default;
-  pointer-events: none;
-  font-style: italic;
-}
-
-.btn .arrow {
-  transition: transform 0.2s;
-}
-
-.btn:not(.btn-disabled):hover .arrow {
-  transform: translateX(3px);
-}
-
-/* Section headers */
-.section-header { max-width: 720px; margin-bottom: 4.5rem; }
-
-.section-title {
-  font-family: var(--display);
-  font-size: clamp(2rem, 4.2vw, 3.1rem);
-  font-weight: 400;
-  letter-spacing: -0.022em;
-  line-height: 1.08;
-  font-variation-settings: 'opsz' 80, 'SOFT' 30;
-  margin-bottom: 1.25rem;
-}
-
-.section-title em {
-  font-style: italic;
-  color: var(--accent);
-  font-variation-settings: 'opsz' 80, 'SOFT' 100;
-}
-
-.section-intro {
-  font-size: 1.1rem;
-  color: var(--text-muted);
-  max-width: 580px;
-  line-height: 1.55;
-}
-
 /* Features */
 #what {
   background: linear-gradient(180deg, transparent 0%, var(--bg-warm) 60%, transparent 100%);
@@ -358,7 +171,7 @@ nav a:hover { color: var(--text); }
   font-size: 15.5px;
 }
 
-/* Steps */
+/* How it works steps */
 .steps { display: flex; flex-direction: column; }
 
 .step {
@@ -399,7 +212,7 @@ nav a:hover { color: var(--text); }
   line-height: 1.6;
 }
 
-/* Install */
+/* Install — dark section */
 #install {
   background: var(--dark-bg);
   color: var(--bg);
@@ -421,7 +234,6 @@ nav a:hover { color: var(--text); }
 #install .section-title { color: var(--bg); }
 #install .section-intro { color: var(--dark-text-muted); }
 #install .eyebrow { color: #f5887e; }
-#install .rule { background: var(--accent); }
 
 .install-cards {
   display: grid;
@@ -482,35 +294,8 @@ nav a:hover { color: var(--text); }
   color: var(--text-faint);
 }
 
-/* About */
-#about {
-  padding: 6rem 0;
-}
-
-.about-content {
-  max-width: 760px;
-}
-
-.about-content p {
-  font-size: 1.15rem;
-  line-height: 1.65;
-  color: var(--text-muted);
-  margin-bottom: 1.25rem;
-}
-
-.about-signature {
-  margin-top: 2.5rem;
-  font-family: var(--display);
-  font-style: italic;
-  font-size: 1.2rem;
-  font-variation-settings: 'opsz' 36, 'SOFT' 100;
-  color: var(--text);
-}
-
-/* Template */
-.template-block {
-  max-width: 740px;
-}
+/* Template section */
+.template-block { max-width: 740px; }
 
 .template-steps {
   list-style: none;
@@ -550,88 +335,30 @@ nav a:hover { color: var(--text); }
   font-size: 17px;
 }
 
-.template-steps strong {
-  font-weight: 600;
+.template-steps strong { font-weight: 600; color: var(--text); }
+
+/* About */
+#about { padding: 6rem 0; }
+
+.about-content { max-width: 760px; }
+
+.about-content p {
+  font-size: 1.15rem;
+  line-height: 1.65;
+  color: var(--text-muted);
+  margin-bottom: 1.25rem;
+}
+
+.about-signature {
+  margin-top: 2.5rem;
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 1.2rem;
+  font-variation-settings: 'opsz' 36, 'SOFT' 100;
   color: var(--text);
 }
 
-/* Footer */
-footer {
-  padding: 4rem 0 3rem;
-  border-top: 1px solid var(--rule);
-  background: var(--bg-warm);
-}
-
-.footer-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: 3rem;
-  margin-bottom: 3rem;
-}
-
-.footer-brand {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  font-family: var(--display);
-  font-size: 1.15rem;
-  font-weight: 500;
-  font-variation-settings: 'opsz' 20, 'SOFT' 40;
-  margin-bottom: 0.6rem;
-  letter-spacing: -0.015em;
-}
-
-.footer-tagline {
-  color: var(--text-muted);
-  font-size: 14px;
-  max-width: 280px;
-  line-height: 1.55;
-}
-
-.footer-col h4 {
-  font-family: var(--mono);
-  font-size: 10.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: var(--accent);
-  margin-bottom: 1.1rem;
-}
-
-.footer-col ul { list-style: none; }
-.footer-col ul li { margin-bottom: 0.55rem; }
-
-.footer-col a {
-  color: var(--text-muted);
-  font-size: 14.5px;
-  transition: color 0.2s;
-}
-
-.footer-col a:hover { color: var(--accent); }
-
-.footer-bottom {
-  padding-top: 2rem;
-  border-top: 1px solid var(--rule);
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  color: var(--text-faint);
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-/* Reveal animations on scroll */
-.reveal {
-  opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.reveal.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* Hero load animation */
+/* Hero load animations (page-specific) */
 .hero-anim {
   opacity: 0;
   animation: fade-up 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -643,31 +370,19 @@ footer {
 .hero-anim-4 { animation-delay: 0.55s; }
 .hero-anim-5 { animation-delay: 0.5s; animation-duration: 1.1s; }
 
-@keyframes fade-up {
-  from { opacity: 0; transform: translateY(24px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* Responsive */
+/* Index responsive overrides */
 @media (max-width: 920px) {
   .hero-grid { grid-template-columns: 1fr; gap: 3rem; }
   .flag-container { order: -1; }
   .flag-svg { max-width: 220px; }
   .features { grid-template-columns: 1fr; gap: 2.5rem; }
   .install-cards { grid-template-columns: 1fr; }
-  .footer-grid { grid-template-columns: 1fr 1fr; }
-  nav { display: none; }
-  section { padding: 5rem 0; }
 }
 
 @media (max-width: 640px) {
-  .container { padding: 0 1.5rem; }
   .step { grid-template-columns: 60px 1fr; gap: 1.5rem; padding: 2rem 0; }
   .step-num { font-size: 2.2rem; }
   .install-card { padding: 2rem 1.75rem; }
-  .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
-  .footer-bottom { flex-direction: column; }
-  header { padding: 1.25rem 0; }
   .hero-actions { width: 100%; }
   .hero-actions .btn { flex: 1; justify-content: center; }
 }
@@ -675,7 +390,7 @@ footer {
 </head>
 <body>
 
-<header>
+<header class="absolute">
   <div class="container">
     <a href="#" class="brand">
       <span class="brand-flag"></span>
@@ -831,8 +546,6 @@ footer {
         <div class="install-card-tag">Piece one</div>
         <h3>Google Docs add-on</h3>
         <p>Installs from the Google Workspace Marketplace. Accept the permissions and the red flag appears in any Google Doc, behind the right-edge icon panel.</p>
-        <!-- TODO: when Marketplace approves the listing, replace this href with the install URL
-             and remove the btn-disabled class. -->
         <a href="#" class="btn btn-primary btn-disabled">
           Marketplace listing — pending approval
         </a>
@@ -894,7 +607,7 @@ footer {
       <p>
         It's provided free of charge as a contribution to the international judging community. No subscriptions, no premium tier, no telemetry. The code reads your active decision document, copies it to your clipboard, and stops there — your data never reaches the developer.
       </p>
-      <div class="about-signature">— Yoann Peronneau, Antibes</div>
+      <div class="about-signature">— Yoann Peronneau, Antibes, France</div>
     </div>
   </div>
 </section>
@@ -904,36 +617,22 @@ footer {
 <footer>
   <div class="container">
     <div class="footer-grid">
-      <div>
+      <div class="footer-brand-block">
         <div class="footer-brand">
-          <span class="brand-flag" style="width:12px;height:15px;"></span>
+          <span class="brand-flag"></span>
           Sailing Jury Decision
         </div>
         <p class="footer-tagline">A free Google Docs add-on for sailing race jury panels.</p>
       </div>
-      <div class="footer-col">
-        <h4>Product</h4>
-        <ul>
-          <li><a href="#what">What it does</a></li>
-          <li><a href="#how">How it works</a></li>
-          <li><a href="#install">Install</a></li>
-          <li><a href="#template">Template</a></li>
-          <li><a href="install.html">Bookmarklet</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Legal</h4>
-        <ul>
-          <li><a href="privacy.html">Privacy policy</a></li>
-          <li><a href="terms.html">Terms of service</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Contact</h4>
-        <ul>
-          <li><a href="mailto:[YOUR_EMAIL]">Email the developer</a></li>
-        </ul>
-      </div>
+      <nav class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="#what">What it does</a>
+        <a href="#how">How it works</a>
+        <a href="#install">Install</a>
+        <a href="install.html">Bookmarklet</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+      </nav>
     </div>
     <div class="footer-bottom">
       <div>© 2026 Yoann Peronneau. All rights reserved.</div>
