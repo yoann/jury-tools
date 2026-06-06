@@ -1,4 +1,13 @@
 /**
+ * Copyright © 2026 Yoann Peronneau. All rights reserved.
+ *
+ * This software is proprietary. Unauthorized copying, modification,
+ * distribution, or use of this file, in whole or in part, via any
+ * medium, is strictly prohibited without prior written consent of
+ * the copyright holder.
+ */
+
+/**
  * jury-fill.js — bookmarklet payload for the "Fill jury decision" tool.
  *
  * Detects whether the current page is sailti, RRS (racingrulesofsailing.org),
