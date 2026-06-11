@@ -60,7 +60,7 @@
   <div class="legal-container">
     <div class="eyebrow">Legal</div>
     <h1 class="page-title">Privacy Policy</h1>
-    <div class="page-meta">Effective 06 June 2026 · Last updated 06 June
+    <div class="page-meta">Effective 06 June 2026 · Last updated 11 June
 2026</div>
   </div>
 </section>
@@ -170,7 +170,54 @@ clipboard</strong>. From that point on, the payload is under your
 control — it stays in your clipboard until you paste it somewhere or
 copy something else.</p>
 <hr />
-<h2 id="third-party-services">6. Third-party services</h2>
+<h2 id="data-security-and-protection">6. Data security and
+protection</h2>
+<p>The add-on follows a minimum-data design and relies on Google’s
+infrastructure to protect the confidentiality of your data. Specific
+security measures include:</p>
+<p><strong>Encryption in transit.</strong> All communication between the
+add-on and Google’s APIs occurs over HTTPS / TLS. No data is ever
+transmitted in clear text. The add-on never transmits data to any
+developer-controlled server, because there is no developer-controlled
+server in the data path.</p>
+<p><strong>Encryption and access controls at rest.</strong> Any data the
+add-on processes is handled within Google’s Apps Script infrastructure,
+which inherits Google’s standard security protections — encryption at
+rest, network isolation, and identity-based access controls. The
+developer does not operate any servers or storage independent of
+Google.</p>
+<p><strong>Minimum-data design.</strong> The developer does not store
+your document content. No databases, no analytics, no backups are
+maintained by the developer. Apps Script may log uncaught exceptions
+(error messages and stack traces) to Google Cloud Logging within the
+developer’s Cloud project; these logs do not contain document content
+under normal operation. The only persistent storage the add-on writes is
+a small per-user cache flag (Apps Script’s CacheService, automatically
+expiring within one hour) indicating per-document Drive consent; this
+cache contains no document content.</p>
+<p><strong>Scope restriction.</strong> The add-on uses the narrowest
+applicable Google OAuth scopes:</p>
+<ul>
+<li><code>drive.file</code> grants access only to documents you
+explicitly authorize via the per-document consent prompt — not to your
+entire Drive.</li>
+<li><code>documents.currentonly</code> grants access only to the
+document you currently have open in the editor.</li>
+</ul>
+<p><strong>URL allowlist.</strong> Outgoing network requests from the
+add-on are restricted to a short, explicit allowlist declared in the
+add-on’s manifest: the Google Drive v3 export endpoint and the public
+snippets spreadsheet. The add-on cannot make HTTP requests to any other
+URL.</p>
+<p><strong>Third-party data flow.</strong> When you click “Copy for
+sailti / RRS / m2s”, the decision payload is placed on your operating
+system’s clipboard. You then explicitly paste it (via the companion
+bookmarklet you installed) into your event’s filing system. This
+transfer happens entirely on your device, between your clipboard and
+your own browser tab. The add-on does not transmit data to third parties
+on your behalf.</p>
+<hr />
+<h2 id="third-party-services">7. Third-party services</h2>
 <p>The add-on does not integrate with third-party services other
 than:</p>
 <ul>
@@ -189,7 +236,7 @@ forms directly in your browser. It does not send your data anywhere —
 the data flow is browser → clipboard → bookmarklet → form, all locally
 in your browser.</p>
 <hr />
-<h2 id="legal-basis-for-processing-gdpr-article-6">7. Legal basis for
+<h2 id="legal-basis-for-processing-gdpr-article-6">8. Legal basis for
 processing (GDPR Article 6)</h2>
 <p>Processing is based on:</p>
 <ul>
@@ -202,7 +249,7 @@ sailing judging community, and the processing is limited to what’s
 necessary for the tool to function.</li>
 </ul>
 <hr />
-<h2 id="your-rights-under-gdpr">8. Your rights under GDPR</h2>
+<h2 id="your-rights-under-gdpr">9. Your rights under GDPR</h2>
 <p>You have the right to:</p>
 <ul>
 <li><strong>Access</strong> — request a copy of any personal data the
@@ -228,14 +275,14 @@ address in Section 1. You also have the right to lodge a complaint with
 your national data protection authority (in France: the CNIL, <a
 href="https://www.cnil.fr" class="uri">https://www.cnil.fr</a>).</p>
 <hr />
-<h2 id="data-retention">9. Data retention</h2>
+<h2 id="data-retention">10. Data retention</h2>
 <p>The add-on retains no data beyond the in-memory and short-lived cache
 described in Section 5. There is no long-term storage of your document
 content, your usage patterns, or your identity by the developer.</p>
 <p>Google may retain logs of API calls under its own retention policies;
 these are governed by Google’s privacy policy, not this one.</p>
 <hr />
-<h2 id="international-data-transfers">10. International data
+<h2 id="international-data-transfers">11. International data
 transfers</h2>
 <p>The add-on runs on Google’s Apps Script infrastructure, which Google
 operates globally. Data may transit through Google data centers outside
@@ -244,12 +291,12 @@ transfers under its own privacy framework.</p>
 <p>The developer does not directly transfer data outside the European
 Union.</p>
 <hr />
-<h2 id="childrens-privacy">11. Children’s privacy</h2>
+<h2 id="childrens-privacy">12. Children’s privacy</h2>
 <p>The add-on is intended for adult sailing jury members. It is not
 designed for, marketed to, or intended for use by anyone under 16. The
 developer does not knowingly collect any data from minors.</p>
 <hr />
-<h2 id="changes-to-this-policy">12. Changes to this policy</h2>
+<h2 id="changes-to-this-policy">13. Changes to this policy</h2>
 <p>The developer may update this policy from time to time. The “Last
 updated” date at the top will change. Material changes will be
 communicated via the project website at <a
@@ -258,7 +305,7 @@ class="uri">https://jury.peronneau.net/</a>.</p>
 <p>Continued use of the add-on after a policy change constitutes
 acceptance of the updated policy.</p>
 <hr />
-<h2 id="contact">13. Contact</h2>
+<h2 id="contact">14. Contact</h2>
 <p>For any privacy-related question, exercise of your GDPR rights, or
 general inquiry:</p>
 <blockquote>
