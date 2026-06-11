@@ -281,16 +281,12 @@ nav a:hover { color: var(--text); }
   font-variation-settings: 'opsz' 36, 'SOFT' 40;
   letter-spacing: -0.018em;
   line-height: 1.15;
-  margin: 3rem 0 1rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--rule);
+  margin: 2rem 0 1rem;
   color: var(--text);
 }
 
 .prose > h2:first-child {
   margin-top: 0;
-  padding-top: 0;
-  border-top: none;
 }
 
 .prose h3 {
