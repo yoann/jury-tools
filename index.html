@@ -7,10 +7,6 @@
   Shared design system is in styles.css. Only page-specific layout
   (hero, flag illustration, features grid, steps, install section,
   template section, about, page-load animations) lives in this file.
-
-  When the Marketplace listing is approved, replace the href="#" on the
-  install-card's Marketplace button with the actual install URL and
-  remove the btn-disabled class.
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -546,8 +542,11 @@
         <div class="install-card-tag">Piece one</div>
         <h3>Google Docs add-on</h3>
         <p>Installs from the Google Workspace Marketplace. Accept the permissions and the red flag appears in any Google Doc, behind the right-edge icon panel.</p>
-        <a href="#" class="btn btn-primary btn-disabled">
-          Marketplace listing — pending approval
+        <a href="https://workspace.google.com/marketplace/app/sailing_jury_decision/510064529294"
+           class="btn btn-primary"
+           target="_blank" rel="noopener">
+          Install from Marketplace
+          <span class="arrow">→</span>
         </a>
       </div>
 
