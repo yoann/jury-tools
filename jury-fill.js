@@ -393,6 +393,7 @@
           notes.push('Not found in the ROMS panel lists: ' +
                      result.unmatched.join(', ') + '. Select them manually.');
         }
+        for (const d of result.diagnostics) notes.push(d);
       } catch (e) {
         failed.push('Panel chair / members');
       }
@@ -502,6 +503,7 @@
     let chairName = '';
     let membersSet = 0;
     const unmatched = [];
+    const diagnostics = [];
 
     let rest = names.slice();
     if (chairSelect && rest.length) {
@@ -514,19 +516,75 @@
       }
     }
 
-    if (memberSelect) {
-      for (const opt of memberSelect.options) opt.selected = false;
-      for (const name of rest) {
-        const opt = findOption(memberSelect, name);
-        if (opt) { opt.selected = true; membersSet++; }
-        else     { unmatched.push(name); }
-      }
-      refreshChosen(memberSelect);
-    } else {
+    if (!memberSelect) {
       for (const name of rest) unmatched.push(name);
+      return { chairName, membersSet, unmatched, diagnostics };
     }
 
-    return { chairName: chairName, membersSet: membersSet, unmatched: unmatched };
+    // Resolve every remaining name to an option value first, so the select
+    // is written in one pass rather than option-by-option.
+    const wantedValues = [];
+    for (const name of rest) {
+      const opt = findOption(memberSelect, name);
+      if (opt) wantedValues.push(opt.value);
+      else     unmatched.push(name);
+    }
+
+    if (wantedValues.length) {
+      // Preferred path: jQuery .val() is what Chosen documents for setting a
+      // multi-select programmatically. Direct option.selected assignment is
+      // the fallback for when jQuery isn't present.
+      let applied = false;
+      if (window.jQuery) {
+        try {
+          window.jQuery(memberSelect).val(wantedValues);
+          applied = true;
+        } catch (e) { /* fall through */ }
+      }
+      if (!applied) {
+        for (const opt of memberSelect.options) {
+          opt.selected = wantedValues.indexOf(opt.value) >= 0;
+        }
+      }
+
+      // Redraw the widget, then notify listeners — Chosen wants the update
+      // event after the underlying select has been changed.
+      refreshChosen(memberSelect);
+    }
+
+    // Read back what the select actually holds. This distinguishes a name
+    // that never matched from one that matched but did not stick.
+    const actuallySelected = [];
+    for (const opt of memberSelect.options) {
+      if (opt.selected) actuallySelected.push(stripParens(opt.textContent));
+    }
+    membersSet = actuallySelected.length;
+
+    if (wantedValues.length && membersSet < wantedValues.length) {
+      diagnostics.push(
+        'Matched ' + wantedValues.length + ' panel member' +
+        (wantedValues.length === 1 ? '' : 's') + ' but only ' + membersSet +
+        ' stayed selected. The names exist in the ROMS list, so this is the ' +
+        'Chosen widget rejecting the change rather than a name mismatch.');
+    } else if (membersSet && !isChosenShowing(memberSelect, membersSet)) {
+      diagnostics.push(
+        'The ' + membersSet + ' panel member' + (membersSet === 1 ? '' : 's') +
+        ' below are selected in the form and will submit correctly, even if ' +
+        'the box still looks empty: ' + actuallySelected.join(', '));
+    }
+
+    return { chairName, membersSet, unmatched, diagnostics };
+  }
+
+  /**
+   * Checks whether the Chosen widget's visible pills reflect the number of
+   * options selected underneath. Used to tell the judge when the form data
+   * is correct but the widget has not redrawn.
+   */
+  function isChosenShowing(select, expectedCount) {
+    const container = document.getElementById(select.id + '_chzn');
+    if (!container) return true;   // no Chosen widget: the select is visible
+    return container.querySelectorAll('.search-choice').length >= expectedCount;
   }
 
   /**
