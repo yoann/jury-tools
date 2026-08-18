@@ -377,11 +377,13 @@
     }
 
     // 4) Panel. First name in the list is the chair, the rest are members.
+    let panelValues = [];
     if (data.juryMembers) {
       try {
         const members = String(data.juryMembers).split(',')
                           .map(s => s.trim()).filter(Boolean);
         const result = await assignROMSPanel(members);
+        panelValues = result.memberValues || [];
         if (result.chairName) {
           filled.push('Panel chair (' + result.chairName + ')');
         }
@@ -406,6 +408,11 @@
     msg += '\nCase type, validity, parties, witnesses and score change are not ' +
            'filled by the bookmarklet — review the whole form before submitting.';
     alert(msg);
+
+    // Dismissing the alert releases whatever handlers were queued behind it,
+    // and one of those clears the panel selection. Re-assert it now that
+    // those have had their chance to run.
+    await reassertPanelMembers(panelValues);
   }
 
   /** Waits briefly for TinyMCE to finish initialising its editors. */
@@ -524,7 +531,7 @@
 
     if (!memberSelect) {
       for (const name of rest) unmatched.push(name);
-      return { chairName, membersSet, unmatched, diagnostics };
+      return { chairName, membersSet, unmatched, diagnostics, memberValues: [] };
     }
 
     // Resolve every remaining name to an option first, so a name that simply
@@ -542,19 +549,13 @@
       // empty box; incremental addition mirrors what a user click does.
       for (const opt of wanted) {
         opt.selected = true;
-        if (window.jQuery) {
-          try {
-            const $s = window.jQuery(memberSelect);
-            $s.trigger('chosen:updated');
-            $s.trigger('liszt:updated');
-          } catch (e) { /* keep going */ }
-        }
+        updateChosenDisplay(memberSelect);
         await sleep(60);
       }
 
-      // Notify the page once at the end, rather than after every addition —
-      // Fabrik runs validation on this select's change event.
-      refreshChosen(memberSelect);
+      // Deliberately no change event here: Fabrik's validation handler on
+      // this select clears the selection when it runs. Fabrik submits the
+      // select's own state, so the notification is not needed.
 
       if (!isChosenShowing(memberSelect, wanted.length)) {
         rebuildChosen(memberSelect);
@@ -591,7 +592,52 @@
         'confirm.');
     }
 
-    return { chairName, membersSet, unmatched, diagnostics };
+    return { chairName, membersSet, unmatched, diagnostics,
+             memberValues: wanted.map(o => o.value) };
+  }
+
+  /**
+   * Redraws a Chosen widget WITHOUT firing a change event.
+   *
+   * Fabrik binds validation to the panel select's change event, and that
+   * handler clears the selection once it runs. Since Fabrik reads the select
+   * directly on submit, it never needs the change notification — so the
+   * display is updated on its own.
+   */
+  function updateChosenDisplay(select) {
+    if (!window.jQuery) return;
+    try {
+      const $s = window.jQuery(select);
+      $s.trigger('chosen:updated');
+      $s.trigger('liszt:updated');
+    } catch (e) { /* display-only; never fatal */ }
+  }
+
+  /**
+   * Re-applies the panel member selection after the summary alert closes.
+   *
+   * Dismissing an alert lets any handler queued behind it run, and one of
+   * those was clearing the selection. Re-asserting a few times over the
+   * following second wins against late handlers. Options the judge selected
+   * by hand are left alone — this only ever adds.
+   */
+  async function reassertPanelMembers(values) {
+    const select = document.getElementById('cases___panel_members');
+    if (!select || !values || !values.length) return;
+
+    for (let attempt = 0; attempt < 6; attempt++) {
+      let changed = false;
+      for (const opt of select.options) {
+        if (values.indexOf(opt.value) >= 0 && !opt.selected) {
+          opt.selected = true;
+          changed = true;
+        }
+      }
+      if (changed || !isChosenShowing(select, values.length)) {
+        updateChosenDisplay(select);
+      }
+      await sleep(250);
+    }
   }
 
   /**
