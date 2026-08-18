@@ -40,11 +40,13 @@
       await fillM2S(data);
     } else if (document.getElementById('decision_procedures_text')) {
       await fillRRS(data);
+    } else if (document.getElementById('cases___conclusion_rules')) {
+      await fillROMS(data);
     } else if (document.getElementById('proceduralMatters_en')) {
       fillSailti(data);
     } else {
       alert('This page does not look like a jury decision form ' +
-            '(sailti, RRS, or m2s). Open the form first, then click the bookmark.');
+            '(sailti, RRS, m2s, or ROMS). Open the form first, then click the bookmark.');
     }
   } catch (e) {
     alert('Error filling the form: ' + e.message);
@@ -300,7 +302,227 @@
     }
     return null;
   }
-  function stripParens(s) { return (s || '').replace(/\([^)]*\)/g, '').trim(); }
+  // Collapse internal whitespace too: ROMS renders some panel-member option
+  // labels with doubled spaces ("Bence  Borocz"), which would otherwise fail
+  // an exact match against the name coming from the decision document.
+  function stripParens(s) {
+    return (s || '').replace(/\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
+  }
+
+
+  // =========================================================================
+  // ROMS — Joomla/Fabrik form (onb.*.roms.ar). Long fields are TinyMCE
+  // editors holding <ol> HTML, the panel selects are hidden behind Chosen
+  // widgets, and the decision date is day-month with no year.
+  // =========================================================================
+
+  async function fillROMS(data) {
+    const filled = [];
+    const failed = [];
+    const notes  = [];
+
+    // TinyMCE is initialised by an inline script that may not have run yet.
+    await waitForTinyMCE();
+
+    // 1) Rich-text fields.
+    //    ROMS merges conclusions and applicable rules into a single
+    //    "Conclusion & Rules" field, so rule_en has no field of its own.
+    const editorMap = [
+      ['proceduralMatters_en', 'cases___procedural_matters', 'Procedural matters'],
+      ['factsFound_en',        'cases___facts_found',        'Facts found'],
+      ['conclusion_en',        'cases___conclusion_rules',   'Conclusion & Rules'],
+      ['decision_en',          'cases___decision',           'Full decision'],
+      ['shortDecision_en',     'cases___decision_short',     'Short decision']
+    ];
+    for (const [src, dst, label] of editorMap) {
+      if (data[src] === undefined) continue;
+      const ok = setEditorContent(dst, plainTextToListHTML(data[src]));
+      (ok ? filled : failed).push(label);
+    }
+
+    // Deliberately not appended to the conclusions: inventing text in a
+    // legal document is worse than leaving the judge to place it.
+    if (data.rule_en !== undefined && String(data.rule_en).trim() !== '') {
+      notes.push('ROMS has no separate Rules field. "Conclusion & Rules" was ' +
+                 'filled from the conclusions only — add the applicable rules ' +
+                 'manually if your panel wants them listed separately.');
+    }
+
+    // 2) Decision date. ROMS displays day-month with no year (e.g. "22-05")
+    //    and keeps a parallel data-alt-value attribute.
+    if (data.decisionDate !== undefined) {
+      const el  = document.getElementById('cases___decision_date_cal');
+      const val = formatDateForROMS(data.decisionDate);
+      if (el && val) {
+        setInputValue(el, val);
+        el.setAttribute('data-alt-value', val);
+        filled.push('Decision date');
+      } else {
+        failed.push('Decision date');
+      }
+    }
+
+    // 3) Decision time — plain text input.
+    if (data.decisionTime !== undefined) {
+      const el = document.getElementById('cases___decision_time');
+      if (el) { setInputValue(el, data.decisionTime); filled.push('Decision time'); }
+      else    { failed.push('Decision time'); }
+    }
+
+    // 4) Panel. First name in the list is the chair, the rest are members.
+    if (data.juryMembers) {
+      const members = String(data.juryMembers).split(',')
+                        .map(s => s.trim()).filter(Boolean);
+      const result = assignROMSPanel(members);
+      if (result.chairName) {
+        filled.push('Panel chair (' + result.chairName + ')');
+      }
+      if (result.membersSet) {
+        filled.push(result.membersSet + ' panel member' +
+                    (result.membersSet === 1 ? '' : 's'));
+      }
+      if (result.unmatched.length) {
+        notes.push('Not found in the ROMS panel lists: ' +
+                   result.unmatched.join(', ') + '. Select them manually.');
+      }
+    }
+
+    let msg = 'ROMS form filled.\n\n';
+    if (filled.length) msg += 'Filled: ' + filled.join(', ') + '\n';
+    if (failed.length) msg += 'Could not fill: ' + failed.join(', ') + '\n';
+    if (notes.length)  msg += '\n' + notes.join('\n\n') + '\n';
+    msg += '\nCase type, validity, parties, witnesses and score change are not ' +
+           'filled by the bookmarklet — review the whole form before submitting.';
+    alert(msg);
+  }
+
+  /** Waits briefly for TinyMCE to finish initialising its editors. */
+  async function waitForTinyMCE() {
+    for (let i = 0; i < 20; i++) {
+      if (window.tinymce && window.tinymce.get('cases___facts_found')) return true;
+      await sleep(100);
+    }
+    return false;
+  }
+
+  /**
+   * Writes HTML into a ROMS long field. Prefers the live TinyMCE editor —
+   * setting the underlying textarea alone is invisible, because TinyMCE
+   * renders into its own iframe and overwrites the textarea on submit.
+   * Falls back to the textarea if the editor never came up.
+   */
+  function setEditorContent(id, html) {
+    if (window.tinymce) {
+      const ed = window.tinymce.get(id);
+      if (ed) {
+        ed.setContent(html);
+        ed.save();                       // sync back to the submitted textarea
+        try { ed.fire('change'); } catch (e) {}
+        return true;
+      }
+    }
+    const ta = document.getElementById(id);
+    if (!ta) return false;
+    ta.value = html;
+    triggerChange(ta);
+    return true;
+  }
+
+  /**
+   * ROMS stores the long fields as HTML. Numbered lines become an <ol>,
+   * matching what the ROMS editor itself produces; anything else becomes
+   * a <p>.
+   */
+  function plainTextToListHTML(text) {
+    const lines = String(text || '').split('\n');
+    let html = '';
+    let inList = false;
+    for (const raw of lines) {
+      const line = raw.replace(/\s+$/, '');
+      if (line.trim() === '') continue;
+      const m = line.match(/^\s*(\d+)[.)]\s+(.*)$/);
+      if (m) {
+        if (!inList) { html += '<ol>'; inList = true; }
+        html += '<li>' + escapeHtml(m[2]) + '</li>';
+      } else {
+        if (inList) { html += '</ol>'; inList = false; }
+        html += '<p>' + escapeHtml(line) + '</p>';
+      }
+    }
+    if (inList) html += '</ol>';
+    return html;
+  }
+
+  /** ROMS shows the decision date as day-month with no year, e.g. "22-05". */
+  function formatDateForROMS(dateStr) {
+    const s = String(dateStr || '').trim();
+    const pad = n => (n < 10 ? '0' + n : '' + n);
+
+    let m = s.match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$/);        // 22 May 2026
+    if (m) {
+      const mo = MONTH_NUM[m[2].toLowerCase()];
+      if (mo) return pad(parseInt(m[1], 10)) + '-' + pad(mo);
+    }
+    m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);                   // 2026-05-22
+    if (m) return pad(parseInt(m[3], 10)) + '-' + pad(parseInt(m[2], 10));
+
+    m = s.match(/^(\d{1,2})[\/-](\d{1,2})(?:[\/-]\d{2,4})?$/);      // 22-05[-2026]
+    if (m) return pad(parseInt(m[1], 10)) + '-' + pad(parseInt(m[2], 10));
+
+    return '';
+  }
+
+  /**
+   * Sets the ROMS panel chair and members. The chair select and the member
+   * multi-select are separate, and the chair is not repeated in the member
+   * list, so the first name is consumed by the chair.
+   */
+  function assignROMSPanel(names) {
+    const chairSelect  = document.getElementById('cases___chairman');
+    const memberSelect = document.getElementById('cases___panel_members');
+    let chairName = '';
+    let membersSet = 0;
+    const unmatched = [];
+
+    let rest = names.slice();
+    if (chairSelect && rest.length) {
+      const opt = findOption(chairSelect, rest[0]);
+      if (opt) {
+        chairSelect.value = opt.value;
+        chairName = stripParens(opt.textContent);
+        refreshChosen(chairSelect);
+        rest = rest.slice(1);   // only consume the name if it actually matched
+      }
+    }
+
+    if (memberSelect) {
+      for (const opt of memberSelect.options) opt.selected = false;
+      for (const name of rest) {
+        const opt = findOption(memberSelect, name);
+        if (opt) { opt.selected = true; membersSet++; }
+        else     { unmatched.push(name); }
+      }
+      refreshChosen(memberSelect);
+    } else {
+      for (const name of rest) unmatched.push(name);
+    }
+
+    return { chairName: chairName, membersSet: membersSet, unmatched: unmatched };
+  }
+
+  /**
+   * ROMS hides its selects behind Chosen widgets. Setting select.value only
+   * changes the hidden element — the visible Chosen widget keeps showing the
+   * old text until it is explicitly told to redraw.
+   */
+  function refreshChosen(select) {
+    triggerChange(select);
+    if (window.jQuery) {
+      const $el = window.jQuery(select);
+      try { $el.trigger('chosen:updated'); } catch (e) {}
+      try { $el.trigger('liszt:updated');  } catch (e) {}   // older Chosen
+    }
+  }
 
 
   // ---------- Generic helpers -------------------------------------------
