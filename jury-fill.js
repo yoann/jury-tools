@@ -354,7 +354,10 @@
       const el  = document.getElementById('cases___decision_date_cal');
       const val = formatDateForROMS(data.decisionDate);
       if (el && val) {
-        setInputValue(el, val);
+        // Native events only: the Fabrik jdate handler bound to this input
+        // throws on a synthetic jQuery change. Fabrik submits the input's
+        // value directly, so the calendar never needs to be notified.
+        setInputValueNative(el, val);
         el.setAttribute('data-alt-value', val);
         filled.push('Decision date');
       } else {
@@ -365,25 +368,33 @@
     // 3) Decision time — plain text input.
     if (data.decisionTime !== undefined) {
       const el = document.getElementById('cases___decision_time');
-      if (el) { setInputValue(el, data.decisionTime); filled.push('Decision time'); }
-      else    { failed.push('Decision time'); }
+      if (el) {
+        try { setInputValue(el, data.decisionTime); filled.push('Decision time'); }
+        catch (e) { failed.push('Decision time'); }
+      } else {
+        failed.push('Decision time');
+      }
     }
 
     // 4) Panel. First name in the list is the chair, the rest are members.
     if (data.juryMembers) {
-      const members = String(data.juryMembers).split(',')
-                        .map(s => s.trim()).filter(Boolean);
-      const result = assignROMSPanel(members);
-      if (result.chairName) {
-        filled.push('Panel chair (' + result.chairName + ')');
-      }
-      if (result.membersSet) {
-        filled.push(result.membersSet + ' panel member' +
-                    (result.membersSet === 1 ? '' : 's'));
-      }
-      if (result.unmatched.length) {
-        notes.push('Not found in the ROMS panel lists: ' +
-                   result.unmatched.join(', ') + '. Select them manually.');
+      try {
+        const members = String(data.juryMembers).split(',')
+                          .map(s => s.trim()).filter(Boolean);
+        const result = assignROMSPanel(members);
+        if (result.chairName) {
+          filled.push('Panel chair (' + result.chairName + ')');
+        }
+        if (result.membersSet) {
+          filled.push(result.membersSet + ' panel member' +
+                      (result.membersSet === 1 ? '' : 's'));
+        }
+        if (result.unmatched.length) {
+          notes.push('Not found in the ROMS panel lists: ' +
+                     result.unmatched.join(', ') + '. Select them manually.');
+        }
+      } catch (e) {
+        failed.push('Panel chair / members');
       }
     }
 
@@ -413,19 +424,27 @@
    */
   function setEditorContent(id, html) {
     if (window.tinymce) {
-      const ed = window.tinymce.get(id);
-      if (ed) {
-        ed.setContent(html);
-        ed.save();                       // sync back to the submitted textarea
-        try { ed.fire('change'); } catch (e) {}
-        return true;
+      try {
+        const ed = window.tinymce.get(id);
+        if (ed) {
+          ed.setContent(html);
+          ed.save();                     // sync back to the submitted textarea
+          try { ed.fire('change'); } catch (e) {}
+          return true;
+        }
+      } catch (e) {
+        // Fall through to the textarea below.
       }
     }
     const ta = document.getElementById(id);
     if (!ta) return false;
-    ta.value = html;
-    triggerChange(ta);
-    return true;
+    try {
+      ta.value = html;
+      triggerChange(ta);
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   /**
@@ -533,9 +552,25 @@
     triggerChange(el);
   }
 
+  /**
+   * Sets a value using native DOM events only, deliberately skipping the
+   * jQuery change notification. Some framework-bound handlers (notably
+   * Fabrik's jdate calendar element on ROMS) throw when triggered
+   * synthetically, which would abort the rest of the fill.
+   */
+  function setInputValueNative(el, value) {
+    el.value = value;
+    el.dispatchEvent(new Event('input',  { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
   function triggerChange(el) {
     el.dispatchEvent(new Event('change', { bubbles: true }));
-    if (window.jQuery) window.jQuery(el).trigger('change');
+    // Guarded: a page's own change handler blowing up must not take the
+    // whole fill down with it. The native event above has already fired.
+    if (window.jQuery) {
+      try { window.jQuery(el).trigger('change'); } catch (e) {}
+    }
   }
 
   function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
