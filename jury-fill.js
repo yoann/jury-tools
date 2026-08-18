@@ -512,6 +512,12 @@
         chairSelect.value = opt.value;
         chairName = stripParens(opt.textContent);
         refreshChosen(chairSelect);
+        // Single selects usually honour chosen:updated, but rebuild if the
+        // widget is still showing something other than the chair we set.
+        const shown = document.querySelector('#' + chairSelect.id + '_chzn .chzn-single span');
+        if (shown && stripParens(shown.textContent) !== chairName) {
+          rebuildChosen(chairSelect);
+        }
         rest = rest.slice(1);   // only consume the name if it actually matched
       }
     }
@@ -550,6 +556,13 @@
       // Redraw the widget, then notify listeners — Chosen wants the update
       // event after the underlying select has been changed.
       refreshChosen(memberSelect);
+
+      // The multi-select often ignores chosen:updated and keeps showing an
+      // empty box even though the options underneath are selected. If the
+      // pills do not match, rebuild the widget outright.
+      if (!isChosenShowing(memberSelect, wantedValues.length)) {
+        rebuildChosen(memberSelect);
+      }
     }
 
     // Read back what the select actually holds. This distinguishes a name
@@ -568,12 +581,48 @@
         'Chosen widget rejecting the change rather than a name mismatch.');
     } else if (membersSet && !isChosenShowing(memberSelect, membersSet)) {
       diagnostics.push(
-        'The ' + membersSet + ' panel member' + (membersSet === 1 ? '' : 's') +
-        ' below are selected in the form and will submit correctly, even if ' +
-        'the box still looks empty: ' + actuallySelected.join(', '));
+        'The panel members box still looks empty, but these ' + membersSet +
+        ' are selected in the form and will save correctly: ' +
+        actuallySelected.join(', ') + '. Save the case and reopen it to ' +
+        'confirm.');
     }
 
     return { chairName, membersSet, unmatched, diagnostics };
+  }
+
+  /**
+   * Forces a Chosen widget to rebuild from its underlying select.
+   *
+   * `chosen:updated` is enough for the single-select chair, but the
+   * multi-select panel list does not always redraw its choice pills from it.
+   * Destroying and re-initialising makes Chosen read the select fresh.
+   *
+   * The width is carried over explicitly: the select itself is display:none,
+   * so a re-initialised Chosen would otherwise compute a width of zero.
+   */
+  function rebuildChosen(select) {
+    if (!window.jQuery) return false;
+    const $s = window.jQuery(select);
+    if (typeof $s.chosen !== 'function') return false;
+
+    const container = document.getElementById(select.id + '_chzn');
+    const width = container && container.style && container.style.width
+                    ? container.style.width : null;
+
+    const opts = {
+      placeholder_text_multiple: 'Type or select some options',
+      placeholder_text_single:   'Select an option',
+      no_results_text:           'No results match'
+    };
+    if (width) opts.width = width;
+
+    try {
+      $s.chosen('destroy');
+      $s.chosen(opts);
+      return true;
+    } catch (e) {
+      return false;   // older Chosen builds may not support destroy
+    }
   }
 
   /**
