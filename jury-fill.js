@@ -381,7 +381,7 @@
       try {
         const members = String(data.juryMembers).split(',')
                           .map(s => s.trim()).filter(Boolean);
-        const result = assignROMSPanel(members);
+        const result = await assignROMSPanel(members);
         if (result.chairName) {
           filled.push('Panel chair (' + result.chairName + ')');
         }
@@ -497,7 +497,7 @@
    * multi-select are separate, and the chair is not repeated in the member
    * list, so the first name is consumed by the chair.
    */
-  function assignROMSPanel(names) {
+  async function assignROMSPanel(names) {
     const chairSelect  = document.getElementById('cases___chairman');
     const memberSelect = document.getElementById('cases___panel_members');
     let chairName = '';
@@ -527,40 +527,36 @@
       return { chairName, membersSet, unmatched, diagnostics };
     }
 
-    // Resolve every remaining name to an option value first, so the select
-    // is written in one pass rather than option-by-option.
-    const wantedValues = [];
+    // Resolve every remaining name to an option first, so a name that simply
+    // is not in the ROMS list is reported rather than silently skipped.
+    const wanted = [];
     for (const name of rest) {
       const opt = findOption(memberSelect, name);
-      if (opt) wantedValues.push(opt.value);
+      if (opt) wanted.push(opt);
       else     unmatched.push(name);
     }
 
-    if (wantedValues.length) {
-      // Preferred path: jQuery .val() is what Chosen documents for setting a
-      // multi-select programmatically. Direct option.selected assignment is
-      // the fallback for when jQuery isn't present.
-      let applied = false;
-      if (window.jQuery) {
-        try {
-          window.jQuery(memberSelect).val(wantedValues);
-          applied = true;
-        } catch (e) { /* fall through */ }
-      }
-      if (!applied) {
-        for (const opt of memberSelect.options) {
-          opt.selected = wantedValues.indexOf(opt.value) >= 0;
+    if (wanted.length) {
+      // Added one at a time, each followed by its own redraw. Setting the
+      // whole selection in a single pass left the Chosen widget showing an
+      // empty box; incremental addition mirrors what a user click does.
+      for (const opt of wanted) {
+        opt.selected = true;
+        if (window.jQuery) {
+          try {
+            const $s = window.jQuery(memberSelect);
+            $s.trigger('chosen:updated');
+            $s.trigger('liszt:updated');
+          } catch (e) { /* keep going */ }
         }
+        await sleep(60);
       }
 
-      // Redraw the widget, then notify listeners — Chosen wants the update
-      // event after the underlying select has been changed.
+      // Notify the page once at the end, rather than after every addition —
+      // Fabrik runs validation on this select's change event.
       refreshChosen(memberSelect);
 
-      // The multi-select often ignores chosen:updated and keeps showing an
-      // empty box even though the options underneath are selected. If the
-      // pills do not match, rebuild the widget outright.
-      if (!isChosenShowing(memberSelect, wantedValues.length)) {
+      if (!isChosenShowing(memberSelect, wanted.length)) {
         rebuildChosen(memberSelect);
       }
     }
@@ -573,12 +569,20 @@
     }
     membersSet = actuallySelected.length;
 
-    if (wantedValues.length && membersSet < wantedValues.length) {
+    if (!rest.length) {
+      // Nothing was even attempted — the document supplied no member names.
       diagnostics.push(
-        'Matched ' + wantedValues.length + ' panel member' +
-        (wantedValues.length === 1 ? '' : 's') + ' but only ' + membersSet +
-        ' stayed selected. The names exist in the ROMS list, so this is the ' +
-        'Chosen widget rejecting the change rather than a name mismatch.');
+        'No panel members were set: the decision document supplied ' +
+        names.length + ' name' + (names.length === 1 ? '' : 's') +
+        ' (' + names.join(', ') + '), and the first is used as the chair. ' +
+        'Add the members to the jury members field in the Google Doc, or ' +
+        'select them manually here.');
+    } else if (wanted.length && membersSet < wanted.length) {
+      diagnostics.push(
+        'Matched ' + wanted.length + ' panel member' +
+        (wanted.length === 1 ? '' : 's') + ' but only ' + membersSet +
+        ' stayed selected. The names exist in the ROMS list, so the widget ' +
+        'is rejecting the change rather than failing to match a name.');
     } else if (membersSet && !isChosenShowing(memberSelect, membersSet)) {
       diagnostics.push(
         'The panel members box still looks empty, but these ' + membersSet +
